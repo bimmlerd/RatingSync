@@ -56,33 +56,35 @@ dfs_stack = [os.path.realpath(os.curdir)]
 visited = []
 while dfs_stack: # while not empty
     item = dfs_stack.pop()
+
     if item in visited: # make sure there are no cycles
         if verbose:
             print("searched file already: {}".format(item))
-    else:
-        if os.path.islink(item):
-            visited.append(item)
-            # for some reason THIS is slower than appending EVERYTHING to the visited list... this doesnt make any sense.
-        if os.path.isdir(item):
+        continue
+        
+    visited.append(item)
+    if os.path.isdir(item):
+        if verbose:
+            print("adding dir to searching list: {}".format(item))
+            # push all child files to the stack
+        new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(path=item)]
+        dfs_stack.extend(new_dirs)
+    elif os.path.isfile(item):
+        if re.search(r".*\.mp3", item):
             if verbose:
-                print("adding dir to searching list: {}".format(item))
-                # push all child files to the stack
-            new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(path=item)]
-            dfs_stack.extend(new_dirs)
-        elif os.path.isfile(item):
-            if re.search(r".*\.mp3", item):
-                if verbose:
-                    print("adding to music list: {}".format(item))
-                music_files.append(item)
-            elif verbose:
-                print("not an mp3 file: {}".format(item))
-        else:
-            print("error, {} is neither a file nor a directory. exiting.".format(item))
-            break
+                print("adding to music list: {}".format(item))
+            music_files.append(item)
+        elif verbose:
+            print("not an mp3 file: {}".format(item))
+    else:
+        print("error, {} is neither a file nor a directory. exiting.".format(item))
+        break
+
 print("music files len", len(music_files))
 print("visited len", len(visited))
 
 elapsed = timemodule.time() - starttime
 
 print("elapsed time: {:.5f}s".format(elapsed))
+
 # first I will try a naive implementation using a dict, once that works I will optimize it and find a good data structure
