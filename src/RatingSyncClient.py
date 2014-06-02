@@ -14,7 +14,7 @@ Author: Valentin Trifonov (and soon maybe some more people aswell).
 import os
 import re
 import argparse
-import time as time2
+import time as timemodule
 
 # parse arguments
 parser = argparse.ArgumentParser(description="Start the Rating syncing client.")
@@ -46,7 +46,7 @@ elif "server" in args:
 else:
     parser.print_help()
     
-t = time2.time()
+starttime = timemodule.time() # performance measuring
 
 # implementation
 os.chdir(path)
@@ -82,7 +82,7 @@ while dfs_stack: # while not empty
 print("music files len", len(music_files))
 print("visited len", len(visited))
 
-elapsed = time2.time() - t
+elapsed = timemodule.time() - starttime
 
 print("elapsed time: {:.5f}s".format(elapsed))
 # first I will try a naive implementation using a dict, once that works I will optimize it and find a good data structure
