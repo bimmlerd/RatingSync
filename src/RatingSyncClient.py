@@ -20,10 +20,10 @@ import time as timemodule
 parser = argparse.ArgumentParser(description="Start the Rating syncing client.")
 parser.add_argument("-v", "--verbose", help="verbosity (print more about what is done)", action="store_true")
 subparser = parser.add_subparsers()
-# init per config file
+# init using config file
 conf_parser = subparser.add_parser("config", help="load settings per config file")
 conf_parser.add_argument("--file", help="the path to the config file (Default: RatingSync.conf)", default="RatingSync.conf")
-# init per arguments
+# init using arguments
 arg_parser = subparser.add_parser("opt", help="initialize settings per options")
 arg_parser.add_argument("--path", help="the path to the directory of your music collection", type=str, default=os.curdir)
 arg_parser.add_argument("server", help="the server to connect to")
