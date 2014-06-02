@@ -14,6 +14,7 @@ Author: Valentin Trifonov (and soon maybe some more people aswell).
 import os
 import re
 import argparse
+import time as time2
 
 # parse arguments
 parser = argparse.ArgumentParser(description="Start the Rating syncing client.")
@@ -45,6 +46,7 @@ elif "server" in args:
 else:
     parser.print_help()
     
+t = time2.time()
 
 # implementation
 os.chdir(path)
@@ -54,8 +56,13 @@ dfs_stack = [os.path.realpath(os.curdir)]
 visited = []
 while dfs_stack: # while not empty
     item = dfs_stack.pop()
-    if not item in visited: # make sure there are no cycles
-        visited.append(item)
+    if item in visited: # make sure there are no cycles
+        if verbose:
+            print("searched file already: {}".format(item))
+    else:
+        if os.path.islink(item):
+            visited.append(item)
+            # for some reason THIS is slower than appending EVERYTHING to the visited list... this doesnt make any sense.
         if os.path.isdir(item):
             if verbose:
                 print("adding dir to searching list: {}".format(item))
@@ -72,9 +79,10 @@ while dfs_stack: # while not empty
         else:
             print("error, {} is neither a file nor a directory. exiting.".format(item))
             break
-    else:
-        if verbose:
-            print("searched file already: {}".format(item))
 print("music files len", len(music_files))
+print("visited len", len(visited))
 
+elapsed = time2.time() - t
+
+print("elapsed time: {:.5f}s".format(elapsed))
 # first I will try a naive implementation using a dict, once that works I will optimize it and find a good data structure
