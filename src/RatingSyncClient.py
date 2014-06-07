@@ -16,6 +16,7 @@ import sys
 import re
 import argparse
 import time as timemodule
+import Ratings
 
 from enum import Enum
 from mutagen.id3 import ID3
@@ -24,14 +25,9 @@ from mutagen.id3 import ID3
 def read_tag(item):
     # maybe throw exeption if file is not an mp3 file?
     try:
-        tag = ID3(item)
-        rating = tag.getall('POPM')[0].rating
-        if rating == 255:   return 5
-        elif rating == 196: return 4
-        elif rating == 128: return 3
-        elif rating == 64:  return 2
-        elif rating == 1:   return 1
-        else:               return 0
+        ratings = Ratings.getRatings(item)
+        rating = ratings[0].rating
+        return Ratings.StarsFromByte(rating, Ratings.RatingProvider.WinAmp)
     except:
         return 0
 
@@ -87,8 +83,9 @@ while dfs_stack: # while not empty
         if verbose:
             print("adding dir to searching list: {}".format(item))
             # push all child files to the stack
-        new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(item)]
-        dfs_stack.extend(new_dirs)
+        if not os.path.split(item)[1] == "#":
+            new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(item)]
+            dfs_stack.extend(new_dirs)
     elif os.path.isfile(item):
         if re.search(r".*\.mp3", item):
             rating = read_tag(item)
