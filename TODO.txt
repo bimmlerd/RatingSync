@@ -1,7 +1,9 @@
 #TODO
-save config to preferences file
-load config file on start
-add subparser to list/change configuration
+
+on branch arg-restructuring:
+	save config to preferences file
+	load config file on start
+	add subparser to list/change configuration
 
 save database if there is none, otherwise only update changes
 
