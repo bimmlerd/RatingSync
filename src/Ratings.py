@@ -17,7 +17,6 @@ def StarsFromByte(rating, provider):
         elif rating == 128: return 3
         elif rating == 64:  return 2
         elif rating == 1:   return 1
-        elif rating == 0:   return 0
         else:
             raise Exception("Unknown rating for " + RatingProvider.reverse_mapping(provider))
     else:
@@ -30,7 +29,6 @@ def ByteFromStars(stars, provider):
         elif stars == 3:    return 128
         elif stars == 2:    return 64
         elif stars == 1:    return 1
-        elif stars == 0:    return 0
         else:
             raise Exception("rating not between 0 and 5")
     else:
