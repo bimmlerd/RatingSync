@@ -15,6 +15,7 @@ import os
 import sys
 import re
 import argparse
+import Song
 import time as timemodule
 import Ratings
 
@@ -25,7 +26,8 @@ from mutagen.id3 import ID3
 def read_tag(item):
     # maybe throw exeption if file is not an mp3 file?
     try:
-        ratings = Ratings.getRatingsFromItem(item)
+        song = Song(item)
+        ratings = song.Ratings.getRatingsFromItem(item)
         rating = ratings[0].rating
         return Ratings.StarsFromByte(rating, Ratings.RatingProvider.WinAmp)
     except:
