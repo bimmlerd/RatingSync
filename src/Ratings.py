@@ -7,7 +7,7 @@ Created on 07.06.2014
 from enum import Enum
 from mutagen.id3 import ID3
 
-def getRatingFromItem(item):
+def getRatingsFromItem(item):
     return ID3(item).getall('POPM')
 
 def StarsFromByte(rating, provider):

@@ -25,7 +25,7 @@ from mutagen.id3 import ID3
 def read_tag(item):
     # maybe throw exeption if file is not an mp3 file?
     try:
-        ratings = Ratings.getRatingFromItem(item)
+        ratings = Ratings.getRatingsFromItem(item)
         rating = ratings[0].rating
         return Ratings.StarsFromByte(rating, Ratings.RatingProvider.WinAmp)
     except:
