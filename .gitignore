@@ -72,3 +72,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# pydev configuration, and eclipse stuff
+.pydevproject
+.project
