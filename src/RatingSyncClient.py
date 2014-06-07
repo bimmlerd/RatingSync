@@ -28,18 +28,19 @@ class prefs:
         try:
             config_file = open("RatingSync.conf", "r")
             self.prefs = json.load(config_file)
+            config_file.close()
         except:
-            # well.. there is no file so we shall save it later.
-            pass
+            pass # well.. there is no file so we shall save it later.
     
     # all the preferences:
-    prefs = {"server": None, "path": None, "time": None, "sync_intervall": None}
+    prefs = {"server": None, "path": None, "time": None}
     
     def save(self):
         """write configuration to the default file "RatingSync.conf" """
         try:
             config_file = open("RatingSync.conf", "w")
             json.dump(self.prefs, config_file)
+            config_file.close()
         except:
             print "an error occured when trying to write to RatingSync.conf. exiting."
             sys.exit(2)
@@ -47,21 +48,26 @@ class prefs:
     def setup(self):
         """ask user for the unset preferences and store them in a file"""
         while self.prefs["server"] == None:
-            self.prefs['server'] = input("Enter server ip: ")
+            self.prefs['server'] = raw_input("Enter server ip: ")
             # TODO check ip format!!!
         while self.prefs["path"] == None:
-            self.prefs["path"] = input("Enter path of music library: ")
+            self.prefs["path"] = raw_input("Enter path of music library [.]: ")
+            if self.prefs["path"] == "":
+                self.prefs["path"] = os.path.realpath(os.curdir)
         while self.prefs["time"] == None:
-            self.prefs["time"] = input("Enter sync interval in seconds (min. 60): ")
-            if not isinstance(self.prefs["time"], int) or self.prefs["time"] < 60: # figure out a good default value
-                self.prefs["time"] = None
+            self.prefs["time"] = raw_input("Enter sync interval in minutes (min. 1)[20]: ")
+            if self.prefs["time"] == "":
+                self.prefs["time"] = 20
+            else:
+                evalinput = eval(self.prefs["time"])
+                if not isinstance(evalinput, int) or evalinput < 1: # TODO figure out a good default value
+                    self.prefs["time"] = None
         
     def clear(self):
         """clear all preferences"""
         self.prefs['server'] = None
         self.prefs["path"] = None
         self.prefs["time"] = None
-        self.prefs["sync_intervall"] = None
 
 # reading tags
 def read_tag(item):
@@ -104,10 +110,11 @@ args = parser.parse_args()
 verbose = args.verbose
 config = prefs()
 if args.which == "config":
+    # TODO Check the input of the commands!!!
     if args.setup:
         config.clear()
     if not args.path == None:
-        config.prefs["path"] = os.path.realpath(args.path)
+        config.prefs["path"] = os.path.abspath(args.path)
     if not args.server == None:
         config.prefs["server"] = args.server
     if not args.time == None:
