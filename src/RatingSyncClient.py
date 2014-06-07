@@ -16,6 +16,8 @@ import sys
 import re
 import argparse
 import time as timemodule
+
+from enum import Enum
 from mutagen.id3 import ID3
 
 # reading tags
