@@ -2,12 +2,6 @@
 -cleaning up a little bit
 
 #TODO
-
-on branch arg-restructuring:
-	save config to preferences file
-	load config file on start
-	add subparser to list/change configuration
-
 save database if there is none, otherwise only update changes
 
 figure out the best way for saving ratings in ID3 tags (the POPM frame is kinda complicated) - fake winamp/windows media player/Rhythmbox/...... ratings?
@@ -24,4 +18,6 @@ add option to automatically generate/update playlists by rating (according to us
 (many little #TODO tasks in the code)
 
 #DONE
--dunno
+save config to preferences file
+load config file on start
+add subparser to list/change configuration
