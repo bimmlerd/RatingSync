@@ -40,7 +40,7 @@ def collect(config, verbose):
         elif os.path.isfile(item):
             if re.search(r".*\.mp3", item):
                 song = Song(item, False)
-                newLocalDatabase.insertSong(item)
+                newLocalDatabase.insertSong(song)
                 if verbose:
                     print("adding to music list ({}*): {}".format(song.LastChange, song.path))
             elif verbose:
