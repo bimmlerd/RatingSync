@@ -39,8 +39,8 @@ def collect(config, verbose):
                 dfs_stack.extend(new_dirs)
         elif os.path.isfile(item):
             if re.search(r".*\.mp3", item):
-                song = Song(item)
-                newLocalDatabase.insertSong(song)
+                song = Song(item, False)
+                newLocalDatabase.insertSong(item)
                 if verbose:
                     print("adding to music list ({}*): {}".format(song.LastChange, song.path))
             elif verbose:
