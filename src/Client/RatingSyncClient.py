@@ -17,7 +17,7 @@ import argparse
 import Ratings
 import Song
 import json
-from src.Client import LocalDatabase
+import LocalDatabase
 
 #preferences
 class prefs:
