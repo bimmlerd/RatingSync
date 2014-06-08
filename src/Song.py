@@ -1,7 +1,7 @@
 '''
 Created on 07.06.2014
 
-@author: pschi_000
+@author: phisch
 '''
 from mutagen.id3 import ID3
 import os
@@ -12,10 +12,15 @@ class Song:
     global __lastModified
     global __path
     
-    def __init__(self, path):
-        __id3 = ID3(path)
+    def __init__(self, path, openInstantly):
         __lastModified = os.path.getmtime(path)
-        __ratings = __id3.getall('POPM')
+        __path = path
+        if openInstantly:
+            __id3 = ID3(path)
+            __ratings = __id3.getall('POPM')
+    
+    def path(self):
+        return __path
     
     def GetRatings(self):
         return __ratings
@@ -28,3 +33,6 @@ class Song:
     def LastChange(self):
         return __lastModified
     
+    def OpenAfterwards(self):
+        __id3 = ID3(__path)
+        __ratings = __id3.getall('POPM')

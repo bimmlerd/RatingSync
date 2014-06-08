@@ -1,7 +1,7 @@
 '''
 Created on 07.06.2014
 
-@author: pschi_000
+@author: phisch
 '''
 
 from enum import Enum
@@ -26,13 +26,9 @@ def StarsFromByte(rating, provider):
 
 def ByteFromStars(stars, provider):
     if provider == RatingProvider.WinAmp or provider == RatingProvider.WindowsMediaPlayer9:
-        if stars == 5:      return 255
-        elif stars == 4:    return 196
-        elif stars == 3:    return 128
-        elif stars == 2:    return 64
-        elif stars == 1:    return 1
-        else:
+        if stars > 5 or stars < 1:
             raise Exception("rating not between 0 and 5")
+        return {0, 1, 64, 128, 196, 255}[stars]
     else:
         raise Exception("unknown RatingProvider")
     
