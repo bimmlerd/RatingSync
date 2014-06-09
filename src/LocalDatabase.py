@@ -51,9 +51,9 @@ def collect(config, verbose):
         print "visited len", len(visited)
 
     newLocalDatabase.finish()
-    newLocalDatabase.serialize("./LocalDatabase")
+    newLocalDatabase.serialize(os.curdir + os.path.sep + "MusicDatabase") # FIXME I dont see the file anywhere?
 
 def upload():
-    #Uplaod the File "./LocalDatabase
+    #Uplaod the File "MusicDatabase"
     bla = 0 
  
