@@ -2,32 +2,32 @@ from mutagen.id3 import ID3
 import os
 
 class Song:
-    global __id3
-    global __ratings
-    global __lastModified
-    global __path
+    __id3 = None
+    __ratings = None
+    __lastModified = None
+    __path = None
     
     def __init__(self, path, openInstantly):
-        __lastModified = os.path.getmtime(path)
-        __path = path
+        self.__lastModified = os.path.getmtime(path)
+        self.__path = path
         if openInstantly:
-            __id3 = ID3(path)
-            __ratings = __id3.getall('POPM')
+            self.__id3 = ID3(path)
+            self.__ratings = self.__id3.getall('POPM')
     
     def path(self):
-        return __path
+        return self.__path
     
     def GetRatings(self):
-        return __ratings
+        return self.__ratings
     
     def SetRatings(self, ratings):
-        if not __ratings == ratings:
-            __id3.setall('POPM', ratings)
-            __id3.save(__path)
+        if not self.__ratings == ratings:
+            self.__id3.setall('POPM', ratings)
+            self.__id3.save(self.__path)
     
     def LastChange(self):
-        return __lastModified
+        return self.__lastModified
     
     def OpenAfterwards(self):
-        __id3 = ID3(__path)
-        __ratings = __id3.getall('POPM')
+        self.__id3 = ID3(self.__path)
+        self.__ratings = self.__id3.getall('POPM')

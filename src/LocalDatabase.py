@@ -36,7 +36,7 @@ def collect(config, verbose):
                 song = Song(item, False)
                 newLocalDatabase.insertSong(song)
                 if verbose:
-                    print("adding to music list ({}*): {}".format(song.LastChange, song.path))
+                    print("adding to music list ({}*): {}".format(song.LastChange(), song.path()))
             elif verbose:
                 print("not an mp3 file: {}".format(item))
         else:
