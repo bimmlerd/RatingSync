@@ -13,8 +13,6 @@ def collect(config, verbose):
     starttime = timemodule.time() # performance measuring
 
     os.chdir(config.prefs["path"])
-    music_files = {}
-    # Perform a DFS and put all the mp3 files in the list music_files
     dfs_stack = [os.path.realpath(os.curdir)]
     visited = []
     while dfs_stack: # while not empty
@@ -49,10 +47,10 @@ def collect(config, verbose):
 
     if verbose:
         print "elapsed time: {:.5f}s".format(elapsed)
-        print "music files len", len(music_files)
+        print "music files len: ?"
         print "visited len", len(visited)
 
-
+    newLocalDatabase.finish()
     newLocalDatabase.serialize("./LocalDatabase")
 
 def upload():
