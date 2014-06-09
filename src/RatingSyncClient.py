@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """
 RatingSync synchronizes the ratings of your music collection across multiple platforms.
@@ -64,9 +64,7 @@ class prefs:
         
     def clear(self):
         """clear all preferences"""
-        self.prefs['server'] = None
-        self.prefs["path"] = None
-        self.prefs["time"] = None
+        self.prefs = None
 
 # reading tags
 def read_tag(item):
@@ -132,6 +130,13 @@ elif args.which == "daemon":
     # TODO implement
 else:
     sys.exit(1)
+
+# check path
+path = config.prefs["path"]
+if not os.path.exists(path):
+    print "Invalid path: {0}".format(path)
+    config.prefs["path"] = None
+    config.setup()
 
 LocalDatabase.collect(config, verbose)
 LocalDatabase.upload()

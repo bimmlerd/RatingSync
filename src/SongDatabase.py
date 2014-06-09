@@ -7,39 +7,40 @@ class SongDatabase():
     '''
     #was reinschreiben##
     '''
-    global __tree
-    global __created
-    global __finished
+    __tree = None # globale variablen wuerde bedeuten dass du ausserhalb der klasse SongDatabase nach ihnen suchst. das ist nicht das was wir hier brauchen
+    __created = None
+    __finished = None
     
     def __init__(self, params):
-        __tree = FastAVLTree()
-        __finished = False
+        self.__tree = FastAVLTree()
+        self.__finished = False
        
     def created(self):
-        return __created
+        return self.__created
     
     def finish(self):
-        __finished = True
-        __created = time.time 
+        self.__finished = True
+        self.__created = time.time 
      
     def insertSong(self, song):
-        if __finished:
+        if self.__finished:
             raise Exception("already finished")
-        __tree.setdefault(song.LastChange, song)
+        self.__tree.setdefault(song.LastChange, song)
        
        
     def serialize(self, path):
-        if not __finished:
+        if not self.__finished:
             raise Exception("not yet finished")
-        file = open(path, 'w')
+        serializing_file = open(path, 'w') # 'file' is reserved
         json_obj = jsonpickle.encode(self)
-        file.write(json_obj)
-        file.closed
+        serializing_file.write(json_obj)
+        serializing_file.close()
         return path
         
     def deserialize(self, path):
-        file = open(path, 'r')
-        db = jsonpickle.decode(file.read())
+        serializing_file = open(path, 'r')
+        db = jsonpickle.decode(serializing_file.read())
+        serializing_file.close()
         return db
     
     '''
@@ -54,8 +55,8 @@ class SongDatabase():
     '''
         
     def pop(self):
-        if not __finished:
+        if not self.__finished:
             raise Exception("not yet finished")
-        if not __tree.is_empty():
-            return __tree.pop_max()
+        if not self.__tree.is_empty():
+            return self.__tree.pop_max()
             return None

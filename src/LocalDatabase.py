@@ -1,13 +1,13 @@
 import os
 import sys
 import re
-import Song
+from Song import Song
 import time as timemodule
-import SongDatabase
+from SongDatabase import SongDatabase
 
 
 def collect(config, verbose):
-    newLocalDatabase = SongDatabase()
+    newLocalDatabase = SongDatabase(None)
     
     # implementation    
     starttime = timemodule.time() # performance measuring
