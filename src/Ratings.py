@@ -1,9 +1,3 @@
-'''
-Created on 07.06.2014
-
-@author: phisch
-'''
-
 from enum import Enum
 from mutagen.id3 import ID3
 

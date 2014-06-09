@@ -1,8 +1,3 @@
-'''
-Created on 08.06.2014
-
-@author: phisch
-'''
 from bintrees import FastAVLTree
 import jsonpickle
 import time

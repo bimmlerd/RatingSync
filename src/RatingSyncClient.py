@@ -7,7 +7,7 @@ The server stores your global database of ratings for each mp3 file.
 The client synchronizes updated ratings with the server.
 Each rating will also contain a change date, so that the synchronization works well.
 
-Author: Valentin Trifonov (and soon maybe some more people aswell).
+Author: posedge, phishdev, dbimmler, ...?
 """
 
 # imports n shit

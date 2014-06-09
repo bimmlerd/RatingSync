@@ -1,8 +1,3 @@
-'''
-Created on 08.06.2014
-
-@author: phisch
-'''
 import os
 import sys
 import re
@@ -13,7 +8,8 @@ import SongDatabase
 
 def collect(config, verbose):
     newLocalDatabase = SongDatabase()
-# implementation    
+    
+    # implementation    
     starttime = timemodule.time() # performance measuring
 
     os.chdir(config.prefs["path"])
