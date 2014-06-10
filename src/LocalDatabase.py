@@ -55,5 +55,4 @@ def collect(config, verbose):
 
 def upload():
     #Uplaod the File "MusicDatabase"
-    bla = 0 
- 
+    pass # TODO

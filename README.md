@@ -17,16 +17,19 @@ This is my first python project so the code might be bad :)
 * jsonpickle
 * bintrees
 
-### TODO
-* save database if there is none, otherwise only update changes
-* figure out the best way for saving ratings in ID3 tags (the POPM frame is kinda complicated) - fake winamp/windows media player/Rhythmbox/...... ratings?
-* add option to config for that
-* write server code
-* connect to server, update database
-* run program in background/as a daemon and sync database every now and then
-* maybe monitor changes in a folder?
-* add option to automatically generate/update playlists by rating and other attributes, according to user-defined rules
+### To Do list
+* Fix serializing the database
+* Figure out the best way for saving ratings in ID3 tags (the POPM frame is kinda complicated) - fake winamp/windows media player/Rhythmbox/...... ratings?
+* Add option to config for that
+* Write server code
+* Connect to server, update database
+* Run program in background/as a daemon and sync database every now and then
 * (many little #TODO tasks in the code)
+
+### Ideas for additional features
+* As an alternative to a server, allow synchronizing by using a common file shared across the network
+* Add option to monitor changes in a folder
+* Add option to automatically generate/update playlists by rating and other attributes, according to user-defined rules. These should include ratings, genre, play count, folder, ...?
 
 ### Changelog
 * [...]

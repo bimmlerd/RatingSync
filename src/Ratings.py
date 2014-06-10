@@ -3,8 +3,9 @@ from mutagen.id3 import ID3
 
 def getRatingsFromItem(item):
     return ID3(item).getall('POPM')
+
 def setRatingsForItem(ratings, item):
-    ID3(item).setall('POPM', item)
+    ID3(item).setall('POPM', ratings)
     
 def StarsFromByte(rating, provider):
     if provider == RatingProvider.WinAmp or provider == RatingProvider.WindowsMediaPlayer9:

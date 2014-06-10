@@ -131,6 +131,8 @@ elif args.which == "daemon":
 else:
     sys.exit(1)
 
+# TODO running in background
+
 # check path
 path = config.prefs["path"]
 if not os.path.exists(path):
@@ -140,3 +142,4 @@ if not os.path.exists(path):
 
 LocalDatabase.collect(config, verbose)
 LocalDatabase.upload()
+# TODO wait, then repeat
