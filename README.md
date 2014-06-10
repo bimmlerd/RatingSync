@@ -23,7 +23,7 @@ This is my first python project so the code might be bad :)
 * Add option to config for that
 * Write server code
 * Connect to server, update database
-* Run program in background/as a daemon and sync database every now and then
+* Add daemon/background process support for windows
 * (many little #TODO tasks in the code)
 
 ### Ideas for additional features
