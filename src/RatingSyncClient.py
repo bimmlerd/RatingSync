@@ -17,6 +17,7 @@ import argparse
 import json
 import LocalDatabase
 import time as timemodule
+from daemon import Daemon
 
 #preferences
 class prefs:
@@ -115,6 +116,9 @@ def parse_args():
     # stop the process in background
     stop_parser = subparser.add_parser("stop", help="stop the process running in background")
     stop_parser.set_defaults(which="stop")
+    # restart the process in background
+    res_parser = subparser.add_parser("restart", help="restart the process running in background")
+    res_parser.set_defaults(which="restart")
     # parse args
     return parser.parse_args()
 
@@ -147,8 +151,8 @@ def init(args):
     elif args.which in ["run", "sync", "daemon"]:
         config.setup() # make sure everything is set
     
-    elif args.which == "stop":
-        pass # TODO stop the daemon
+    elif args.which in ["stop", "restart"]:
+        pass
     
     else:
         sys.exit(1)
@@ -181,16 +185,34 @@ def start(args, config):
             print "Next synchronization in {0} minutes. Press ctrl+c to exit.".format(config.prefs["time"])
         timemodule.sleep(config.prefs['time']*60)
 
+class rating_daemon(Daemon):
+    def __init__(self, pidfile, args, config, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):   
+        self.args, self.config = args, config
+        Daemon.__init__(self, pidfile, stdin, stdout, stderr)
+        
+    args = None
+    config = None
+    
+    def run(self):
+        start(self.args, self.config)
+    
 def run():
     """run the program according to the preferences/arguments"""
     args = parse_args()
     config = init(args)
+    daemon = rating_daemon("/tmp/ratingsync.pid", args, config)
+    
     if args.which in ["run", "sync"]:
         start(args, config)
     elif args.which == "daemon":
-        pass # TODO
+        print "RatingSync will now be run in background."
+        daemon.start()
     elif args.which == "stop":
-        pass
+        print "If a daemon is running in background, it will now be stopped."
+        daemon.stop()
+    elif args.which == "restart":
+        print "If a daemon is running in background, it will be restarted now."
+        daemon.restart()
     else:
         pass
 
