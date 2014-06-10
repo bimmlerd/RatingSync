@@ -14,8 +14,6 @@ Author: posedge, phishdev, dbimmler, ...?
 import os
 import sys
 import argparse
-import Ratings
-import Song
 import json
 import LocalDatabase
 import time as timemodule
@@ -47,27 +45,36 @@ class prefs:
         
     def setup(self):
         """ask user for the unset preferences and store them in a file"""
-        while self.prefs["server"] == None:
+        
+        while not self.check_server(self.prefs["server"]):
             self.prefs['server'] = raw_input("Enter server ip: ")
-            # TODO check ip format!!!
+        
         while self.prefs["path"] == None:
             self.prefs["path"] = raw_input("Enter path of music library [.]: ")
             if self.prefs["path"] == "":
                 self.prefs["path"] = os.path.realpath(os.curdir)
-        while self.prefs["time"] == None:
+        
+        while not self.check_time(self.prefs["time"]):
             self.prefs["time"] = raw_input("Enter sync interval in minutes (min. 1)[20]: ")
-            if self.prefs["time"] == "":
+            if self.prefs["time"] == "": # default value
                 self.prefs["time"] = 20
-            else:
-                evalinput = eval(self.prefs["time"])
-                if not isinstance(evalinput, int) or evalinput < 1: # TODO figure out a good default value
-                    self.prefs["time"] = None
         
     def clear(self):
         """clear all preferences"""
         self.prefs = None
+        
+    def check_server(self, input_srv):
+        """checks if input is a valid server ip."""
+        return True # TODO implement
+    
+    def check_time(self, input_time):
+        """checks if input is a valid syncing intervall time"""
+        evaluated = eval(str(input_time))
+        if not isinstance(evaluated, int) or evaluated < 1: # TODO figure out a good default value
+            return False
+        return True
 
-"""
+""" # I dont see where we are using this in this file.
 # reading tags
 def read_tag(item):
     # maybe throw exeption if file is not an mp3 file?
@@ -113,31 +120,39 @@ def parse_args():
 
 def init(args):
     config = prefs()
+    
     if args.which == "config":
-        # TODO Check the input of the commands!!!
         if args.setup:
             config.clear()
         if not args.path == None:
             config.prefs["path"] = os.path.abspath(args.path)
+            print "Set path to {0}.".format(os.path.abspath(args.path))
         if not args.server == None:
-            config.prefs["server"] = args.server
+            if config.check_server(args.server):
+                config.prefs["server"] = args.server
+                print "Set server to {0}.".format(args.server)
+            else:
+                print "Invalid server ip: {0}".format(args.server)
         if not args.time == None:
-            config.prefs["time"] = args.time
+            if config.check_time(args.time):
+                config.prefs["time"] = args.time
+                print "Set syncing interval to {0}.".format(args.time)
+            else:
+                print "Invalid syncing interval: {0}".format(args.time)
         if args.setup:
             config.setup()
         config.save()
         sys.exit(0)
-    elif args.which == "run":
+        
+    elif args.which in ["run", "sync", "daemon"]:
         config.setup() # make sure everything is set
-    elif args.which == "sync":
-        config.setup()
-    elif args.which == "daemon":
-        config.setup()
-        # TODO implement
+    
     elif args.which == "stop":
         pass # TODO stop the daemon
+    
     else:
         sys.exit(1)
+    
     return config
 
 # TODO running in background
@@ -170,10 +185,14 @@ def run():
     """run the program according to the preferences/arguments"""
     args = parse_args()
     config = init(args)
-    if not args.which == "daemon":
+    if args.which in ["run", "sync"]:
         start(args, config)
-    else:
+    elif args.which == "daemon":
         pass # TODO
+    elif args.which == "stop":
+        pass
+    else:
+        pass
 
 if __name__ == "__main__":
     try:
