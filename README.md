@@ -21,7 +21,7 @@ This is my first python project so the code might be bad :)
 * Fix serializing the database
 * Figure out the best way for saving ratings in ID3 tags (the POPM frame is kinda complicated) - fake winamp/windows media player/Rhythmbox/...... ratings?
 * Add option to config for that
-* Write server code
+* Write server code # on branch server-code
 * Connect to server, update database
 * Add daemon/background process support for windows
 * (many little #TODO tasks in the code)
