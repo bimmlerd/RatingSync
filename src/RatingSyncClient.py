@@ -11,16 +11,12 @@ Author: posedge, phishdev, dbimmler, ...?
 """
 
 # imports n shit
-import os
-import sys
+import os, sys
 import argparse
 from shared import *
-import json
 import LocalDatabase
 import time as timemodule
 from daemon import Daemon
-
-
 
 """ # I dont see where we are using this in this file.
 # reading tags
@@ -36,9 +32,10 @@ def read_tag(item):
 """
 
 class client_prefs(prefs):
-    def __init__(self, config_path):
-        prefs.__init__(self, config_path)
-        self.prefs = {"server": None, "time": None, "path": None}
+    def __init__(self):
+        prefs.__init__(self, client_config_path)
+        if self.prefs == None:
+            self.prefs = {"server": None, "time": None, "path": None} # Default preferences
     
     def setup(self):
         while not self.check_server(self.prefs["server"]):
@@ -53,14 +50,18 @@ class client_prefs(prefs):
             self.prefs["time"] = raw_input("Enter sync interval in minutes (min. 1)[20]: ")
             if self.prefs["time"] == "": # default value
                 self.prefs["time"] = 20
+            else:
+                self.prefs["time"] = eval(self.prefs["time"])
 
 def parse_args():
-    """Initialize the program. Parse arguments and set preferences."""
+    """Parse arguments passed to the script."""
+    
     # parse arguments
     # top-level parser
     parser = argparse.ArgumentParser(description="Start the Rating syncing client")
     parser.add_argument("-v", "--verbose", action="store_true", help="verbosity (print more about what is done)")
     subparser = parser.add_subparsers()
+    
     # configuration
     conf_parser = subparser.add_parser("config", help="set preferences")
     conf_parser.set_defaults(which="config")
@@ -70,26 +71,32 @@ def parse_args():
     conf_parser.add_argument("--time", help="the time interval in seconds for syncing the database.", type=int)
     #arg_parser.add_argument("--ratings-format", help="the format for ratings to be saved in files.", type=str)
     #arg_parser.add_argument("--create-playlists", help="automatically create or update playlists for every star rating")
+    
     # run
     run_parser = subparser.add_parser("run", help="start syncing client")
     run_parser.set_defaults(which="run")
+    
     # sync now
     sync_parser = subparser.add_parser("sync", help="sync database now and exit")
     sync_parser.set_defaults(which="sync")
+    
     # run in background
-    daemon_parser = subparser.add_parser("daemon", help="run in background") # TODO
+    daemon_parser = subparser.add_parser("daemon", help="run in background")
     daemon_parser.set_defaults(which="daemon")
+   
     # stop the process in background
     stop_parser = subparser.add_parser("stop", help="stop the process running in background")
     stop_parser.set_defaults(which="stop")
+    
     # restart the process in background
     res_parser = subparser.add_parser("restart", help="restart the process running in background")
     res_parser.set_defaults(which="restart")
+    
     # parse args
     return parser.parse_args()
 
 def init(args):
-    config = client_prefs(client_config_path)
+    config = client_prefs()
     
     if args.which == "config":
         if args.setup:
@@ -166,7 +173,7 @@ def run():
     """run the program according to the preferences/arguments"""
     args = parse_args()
     config = init(args)
-    daemon = rating_daemon("/tmp/ratingsync.pid", args, config)
+    daemon = rating_daemon(client_daemon_pid_path, args, config)
     
     if args.which in ["run", "sync"]:
         start(args, config)

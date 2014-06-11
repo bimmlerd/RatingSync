@@ -8,11 +8,13 @@ import json
 # paths to config files
 client_config_path = "client.conf"
 srv_config_path = "server.conf"
+client_daemon_pid_path = "/tmp/ratingsync.pid"
+srv_daemon_pid_path = "/tmp/ratingsync_server.pid"
 
 #preferences
 class prefs:
-    
     """Preferences for the program. Will try to open the appropriate config file and load it on initialisation."""
+    
     def __init__(self, config_path):
         try:
             self.config_path = config_path
@@ -43,7 +45,7 @@ class prefs:
         
     def clear(self):
         """clear all preferences"""
-        self.prefs = None
+        for key in self.prefs: self.prefs[key] = None
         
     def check_server(self, input_srv):
         """checks if input is a valid server ip."""
@@ -55,3 +57,4 @@ class prefs:
         if not isinstance(evaluated, int) or evaluated < 1: # TODO figure out a good default value
             return False
         return True
+    
