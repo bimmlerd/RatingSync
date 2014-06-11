@@ -14,66 +14,13 @@ Author: posedge, phishdev, dbimmler, ...?
 import os
 import sys
 import argparse
+from shared import *
 import json
 import LocalDatabase
 import time as timemodule
 from daemon import Daemon
 
-#preferences
-class prefs:
-    
-    """Preferences for the program. Will try to open RatingSync.conf and load the config on initialisation."""
-    def __init__(self):
-        try:
-            config_file = open("RatingSync.conf", "r")
-            self.prefs = json.load(config_file)
-            config_file.close()
-        except:
-            pass # well.. there is no file so we shall save it later.
-    
-    # all the preferences:
-    prefs = {"server": None, "path": None, "time": None}
-    
-    def save(self):
-        """write configuration to the default file "RatingSync.conf" """
-        try:
-            config_file = open("RatingSync.conf", "w")
-            json.dump(self.prefs, config_file)
-            config_file.close()
-        except:
-            print "an error occured when trying to write to RatingSync.conf. exiting."
-            sys.exit(2)
-        
-    def setup(self):
-        """ask user for the unset preferences and store them in a file"""
-        
-        while not self.check_server(self.prefs["server"]):
-            self.prefs['server'] = raw_input("Enter server ip: ")
-        
-        while self.prefs["path"] == None:
-            self.prefs["path"] = raw_input("Enter path of music library [.]: ")
-            if self.prefs["path"] == "":
-                self.prefs["path"] = os.path.realpath(os.curdir)
-        
-        while not self.check_time(self.prefs["time"]):
-            self.prefs["time"] = raw_input("Enter sync interval in minutes (min. 1)[20]: ")
-            if self.prefs["time"] == "": # default value
-                self.prefs["time"] = 20
-        
-    def clear(self):
-        """clear all preferences"""
-        self.prefs = None
-        
-    def check_server(self, input_srv):
-        """checks if input is a valid server ip."""
-        return True # TODO implement
-    
-    def check_time(self, input_time):
-        """checks if input is a valid syncing intervall time"""
-        evaluated = eval(str(input_time))
-        if not isinstance(evaluated, int) or evaluated < 1: # TODO figure out a good default value
-            return False
-        return True
+
 
 """ # I dont see where we are using this in this file.
 # reading tags
@@ -87,6 +34,25 @@ def read_tag(item):
     except:
         return 0
 """
+
+class client_prefs(prefs):
+    def __init__(self, config_path):
+        prefs.__init__(self, config_path)
+        self.prefs = {"server": None, "time": None, "path": None}
+    
+    def setup(self):
+        while not self.check_server(self.prefs["server"]):
+            self.prefs["server"] = raw_input("Enter server ip: ")
+        
+        while self.prefs["path"] == None:
+            self.prefs["path"] = raw_input("Enter path of music library [.]: ")
+            if self.prefs["path"] == "":
+                self.prefs["path"] = os.path.realpath(os.curdir)
+        
+        while not self.check_time(self.prefs["time"]):
+            self.prefs["time"] = raw_input("Enter sync interval in minutes (min. 1)[20]: ")
+            if self.prefs["time"] == "": # default value
+                self.prefs["time"] = 20
 
 def parse_args():
     """Initialize the program. Parse arguments and set preferences."""
@@ -123,7 +89,7 @@ def parse_args():
     return parser.parse_args()
 
 def init(args):
-    config = prefs()
+    config = client_prefs(client_config_path)
     
     if args.which == "config":
         if args.setup:
