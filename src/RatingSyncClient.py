@@ -67,10 +67,11 @@ def parse_args():
     # configuration
     conf_parser = subparser.add_parser("config", help="set preferences")
     conf_parser.set_defaults(which="config")
-    conf_parser.add_argument("--setup", action="store_true", help="Set all parameters")
-    conf_parser.add_argument("--path", help="the path to the directory of your music collection.", type=str)
-    conf_parser.add_argument("--server", help="the server to connect to.")
-    conf_parser.add_argument("--time", help="the time interval in seconds for syncing the database.", type=int)
+    conf_parser.add_argument("--setup", action="store_true", help="Get asked for and set all parameters.")
+    conf_parser.add_argument("--path", help="The path to the directory of your music collection.", type=str)
+    conf_parser.add_argument("--server", help="The server to connect to.")
+    conf_parser.add_argument("--time", help="The time interval in seconds for syncing the database.", type=int)
+    conf_parser.add_argument("--list", action="store_true", help="List the current configuration.")
     #arg_parser.add_argument("--ratings-format", help="the format for ratings to be saved in files.", type=str)
     #arg_parser.add_argument("--create-playlists", help="automatically create or update playlists for every star rating")
     
@@ -102,8 +103,9 @@ def init(args):
     
     if args.which == "config":
         if args.setup:
-            config.clear()
+            config.clear() # if we are going to re-set everything, clear it first.
             
+        # do not proceed with setting up immediately though, there might be some arguments provided.
         if not args.path == None:
             if config.check_path(os.path.abspath(args.path)):
                 config.prefs["path"] = os.path.abspath(args.path)
@@ -118,6 +120,10 @@ def init(args):
 
         if args.setup:
             config.setup()
+        
+        if args.list:
+            for l in config.list(): print l
+            
         config.save()
         sys.exit(0)
         

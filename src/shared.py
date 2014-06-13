@@ -56,6 +56,12 @@ class prefs:
         """clear all preferences"""
         for key in self.prefs: self.prefs[key] = None
         
+    def list(self):
+        """List all preferences."""
+        prefs_list = []
+        for key in self.prefs: prefs_list.append("{0}: {1}".format(key, self.prefs[key]))
+        return prefs_list
+        
     def check_path(self, input_path):
         if not input_path == None:
             print "Set path to {0}.".format(input_path)
