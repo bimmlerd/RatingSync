@@ -4,12 +4,17 @@ Global constants and configuration shared across the program shall be added here
 
 import sys, os
 import json
+import re
 
 # paths to config files
 client_config_path = "client.conf"
 srv_config_path = "server.conf"
 client_daemon_pid_path = "/tmp/ratingsync.pid"
 srv_daemon_pid_path = "/tmp/ratingsync_server.pid"
+
+# default values
+default_time = 20
+default_server = "127.0.0.1"
 
 #preferences
 class prefs:
@@ -47,14 +52,30 @@ class prefs:
         """clear all preferences"""
         for key in self.prefs: self.prefs[key] = None
         
+    def check_path(self, input_path):
+        if not input_path == None:
+            print "Set path to {0}.".format(input_path)
+            return True
+        else:
+            print "Invalid path: {0}".format(input_path)
+            return False
+        
     def check_server(self, input_srv):
         """checks if input is a valid server ip."""
-        return True # TODO implement
+        if re.search(r"^([0-9]{1,3}\.){3}[0-9]{1,3}$", str(input_srv)): # regular expression for an ip address
+            print "Set server to {0}.".format(input_srv)
+            return True
+        else:
+            print "Invalid server ip: {0}".format(input_srv)
+            return False
     
     def check_time(self, input_time):
         """checks if input is a valid syncing intervall time"""
         evaluated = eval(str(input_time))
-        if not isinstance(evaluated, int) or evaluated < 1: # TODO figure out a good default value
+        if isinstance(evaluated, int) and evaluated >= 1: # TODO figure out a good default value
+            print "Set syncing interval to {0}.".format(input_time)
+            return True
+        else:
+            print "Invalid syncing interval: {0}".format(input_time)
             return False
-        return True
     

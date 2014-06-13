@@ -39,8 +39,10 @@ class client_prefs(prefs):
     
     def setup(self):
         while not self.check_server(self.prefs["server"]):
-            self.prefs["server"] = raw_input("Enter server ip: ")
-        
+            self.prefs["server"] = raw_input("Enter server ip [127.0.0.1]: ")
+            if self.prefs["server"] == "":
+                self.prefs["server"] = default_server
+                
         while self.prefs["path"] == None:
             self.prefs["path"] = raw_input("Enter path of music library [.]: ")
             if self.prefs["path"] == "":
@@ -49,7 +51,7 @@ class client_prefs(prefs):
         while not self.check_time(self.prefs["time"]):
             self.prefs["time"] = raw_input("Enter sync interval in minutes (min. 1)[20]: ")
             if self.prefs["time"] == "": # default value
-                self.prefs["time"] = 20
+                self.prefs["time"] = default_time
             else:
                 self.prefs["time"] = eval(self.prefs["time"])
 
@@ -101,21 +103,19 @@ def init(args):
     if args.which == "config":
         if args.setup:
             config.clear()
+            
         if not args.path == None:
-            config.prefs["path"] = os.path.abspath(args.path)
-            print "Set path to {0}.".format(os.path.abspath(args.path))
+            if config.check_path(os.path.abspath(args.path)):
+                config.prefs["path"] = os.path.abspath(args.path)
+            
         if not args.server == None:
             if config.check_server(args.server):
                 config.prefs["server"] = args.server
-                print "Set server to {0}.".format(args.server)
-            else:
-                print "Invalid server ip: {0}".format(args.server)
+            
         if not args.time == None:
             if config.check_time(args.time):
                 config.prefs["time"] = args.time
-                print "Set syncing interval to {0}.".format(args.time)
-            else:
-                print "Invalid syncing interval: {0}".format(args.time)
+
         if args.setup:
             config.setup()
         config.save()
