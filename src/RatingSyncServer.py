@@ -12,6 +12,7 @@ Otherwise, send back a list of changes to be made in the clients music library.
 import os, sys, argparse
 from shared import *
 from daemon import Daemon
+import socket
 
 class srv_prefs:
     def __init__(self):
@@ -21,24 +22,14 @@ class srv_prefs:
     
     def setup(self):
         pass
-
-class srv_daemon(Daemon):
-    def __init__(self, pidfile, server, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):   
-        self.server = server
-        Daemon.__init__(self, pidfile, stdin, stdout, stderr)
-        
-    server = None
-    
-    def run(self):
-        self.server.start()
     
 class Server:
     """This time, I will structure my code better (or so I hope)"""
     
     def __init__(self):
-        self.parse_args()
+        self._parse_args()
     
-    def parse_args(self):
+    def _parse_args(self):
         """Parse arguments passed to the script."""
         
         # parse arguments
@@ -55,7 +46,7 @@ class Server:
         # put the playlist stuff here maybe, with subparsers and everything.
         
         # We dont really need subparsers here, but to stay consistent in the syntax of the usage of this program I will add them here as well.
-        run_parser = subparser.add_parser("run", help="start server")
+        run_parser = subparser.add_parser("run", help="_start server")
         run_parser.set_defaults(which="run")
         
         # background process
@@ -73,22 +64,72 @@ class Server:
         # parse args
         self.args = parser.parse_args()
     
-    def start(self):
-        """the process of syncing comes here"""
+    def _handle_request(self, connection, request):
+        """This shall be called when data is received, it then handles the input"""
+        # implementation
+        # TODO introduce messages
+        if request == "ping":
+            if self.args.verbose: print "Client asks for server availability. answering yes."
+            connection.sendall("pong")
+        # maybe add elif data == "quit": shutdown server ?
+        else:
+            if self.args.verbose: print "Client asks for something unrecognized. answering error."
+            connection.sendall("error")
+            
+    def _start(self):
+        """the actual implementation of the server. the process of syncing comes here"""
         print "Starting server..."
-        if self.args.verbose:
-            print "Not yet implemented" # TODO
-    
+        
+        if self.args.verbose: print "Binding socket..."    
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        HOST = "" # Symbolic, meaning all available interfaces
+        s.bind((HOST, default_tcp_port))
+        s.listen(1)
+        
+        while(True): # keep running after connection is closed
+            if self.args.verbose: print "Now listening..."
+            try:
+                conn = None
+                conn, addr = s.accept()
+                    
+                if self.args.verbose: print "Connected to {0}:{1}".format(*addr)
+                
+                while(True):
+                    data = conn.recv(default_buffer_size)
+                    if not data:
+                        if self.args.verbose: print "No more data incoming, closing connection to {0}:{1}.".format(*addr)
+                        break
+                    
+                    self._handle_request(conn, data)
+
+            except KeyboardInterrupt:
+                print "\b\bInterrupted by user. Exiting."
+                raise
+                        
+            finally:
+                # interrupted or not, make sure the connection is closed.
+                if not conn == None: conn.close()
+        
+    class _srv_daemon(Daemon):
+        def __init__(self, pidfile, server, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):   
+            self.server = server
+            Daemon.__init__(self, pidfile, stdin, stdout, stderr)
+            
+        server = None
+        
+        def run(self):
+            self.server._start()
+        
     def run(self):
         """either starts a daemon or starts the server in the current window"""
         
-        daemon = srv_daemon(srv_daemon_pid_path, self)
+        daemon = self._srv_daemon(srv_daemon_pid_path, self)
        
         if self.args.which == "run":
-            self.start()
+            self._start()
         elif self.args.which == "daemon":
             print "RatingSync will now be run in background."
-            daemon.start()
+            daemon._start()
         elif self.args.which == "stop":
             print "If a daemon is running in background, it will now be stopped."
             daemon.stop()
@@ -100,4 +141,8 @@ class Server:
 
 if __name__ == "__main__":
     srv = Server()
-    srv.run()
+    try:
+        srv.run()
+    except KeyboardInterrupt:
+        pass
+    

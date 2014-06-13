@@ -15,6 +15,10 @@ srv_daemon_pid_path = "/tmp/ratingsync_server.pid"
 # default values
 default_time = 20
 default_server = "127.0.0.1"
+default_tcp_port = 7979 # TODO add settings in preferences
+
+# network stuff
+default_buffer_size = 1024 # TODO figure out an apropriate size
 
 #preferences
 class prefs:
@@ -62,7 +66,7 @@ class prefs:
         
     def check_server(self, input_srv):
         """checks if input is a valid server ip."""
-        if re.search(r"^([0-9]{1,3}\.){3}[0-9]{1,3}$", str(input_srv)): # regular expression for an ip address
+        if re.search(r"^([0-9]{1,3}\.){3}[0-9]{1,3}$", str(input_srv)): # regular expression for an ip address. TODO extend this for hostnames!
             print "Set server to {0}.".format(input_srv)
             return True
         else:

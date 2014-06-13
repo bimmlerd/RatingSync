@@ -11,12 +11,12 @@ Author: posedge, phishdev, dbimmler, ...?
 """
 
 # imports n shit
-import os, sys
 import argparse
 from shared import *
 import LocalDatabase
 import time as timemodule
 from daemon import Daemon
+import socket
 
 """ # I dont see where we are using this in this file.
 # reading tags
@@ -75,7 +75,7 @@ def parse_args():
     #arg_parser.add_argument("--create-playlists", help="automatically create or update playlists for every star rating")
     
     # run
-    run_parser = subparser.add_parser("run", help="start syncing client")
+    run_parser = subparser.add_parser("run", help="_start syncing client")
     run_parser.set_defaults(which="run")
     
     # sync now
@@ -135,7 +135,7 @@ def init(args):
 # TODO running in background
 
 def start(args, config):
-    """start syncing"""
+    """_start syncing"""
     # check path
     path = config.prefs["path"]
     if not os.path.exists(path):
@@ -144,18 +144,44 @@ def start(args, config):
         config.setup()
     
     while True:
-        # TODO check server avialability first!
-        print "Scanning music library..."
-        LocalDatabase.collect(config, args.verbose)
-        print "Syncing with server..."
-        LocalDatabase.upload()
-        # TODO await response, commit changes
+        print "Checking availabilty of {0}...".format(config.prefs["server"])
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
-        if args.which == "sync":
-            break
+        if args.verbose: print "Connecting..."
+        try:
+            s.connect((config.prefs["server"], default_tcp_port))
+                
+            if args.verbose: print "Sending ping..."
+            s.sendall("ping")
         
-        if args.verbose:
-            print "Next synchronization in {0} minutes. Press ctrl+c to exit.".format(config.prefs["time"])
+            if args.verbose: print "Waiting for an answer..."
+            data = s.recv(default_buffer_size)
+        
+            if data == "pong":
+                if args.verbose: print "Server available."
+            else:
+                print "Server not ready!"
+                raise Exception("server not ready!")
+                
+            print "Scanning music library..."
+            LocalDatabase.collect(config, args.verbose)
+            
+            print "Syncing with server..."
+            LocalDatabase.upload()
+            # TODO await response, commit changes
+                
+            if args.verbose: print "Closing connection/socket..."
+            s.close()
+        
+        except:
+            print "Server unavailable!"
+        
+        finally:
+            if args.which == "sync":
+                break
+        
+            if args.verbose:
+                print "Next synchronization in {0} minutes. Press ctrl+c to exit.".format(config.prefs["time"])
         timemodule.sleep(config.prefs['time']*60)
 
 class rating_daemon(Daemon):
@@ -179,7 +205,7 @@ def run():
         start(args, config)
     elif args.which == "daemon":
         print "RatingSync will now be run in background."
-        daemon.start()
+        daemon._start()
     elif args.which == "stop":
         print "If a daemon is running in background, it will now be stopped."
         daemon.stop()
@@ -193,4 +219,4 @@ if __name__ == "__main__":
     try:
         run()
     except KeyboardInterrupt:
-        print "Exiting..."
+        print "\b\bExiting..."
