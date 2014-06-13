@@ -46,7 +46,7 @@ class Server:
         # put the playlist stuff here maybe, with subparsers and everything.
         
         # We dont really need subparsers here, but to stay consistent in the syntax of the usage of this program I will add them here as well.
-        run_parser = subparser.add_parser("run", help="_start server")
+        run_parser = subparser.add_parser("run", help="start server")
         run_parser.set_defaults(which="run")
         
         # background process
@@ -76,7 +76,7 @@ class Server:
             if self.args.verbose: print "Client asks for something unrecognized. answering error."
             connection.sendall("error")
             
-    def _start(self):
+    def start(self):
         """the actual implementation of the server. the process of syncing comes here"""
         print "Starting server..."
         
@@ -118,7 +118,7 @@ class Server:
         server = None
         
         def run(self):
-            self.server._start()
+            self.server.start()
         
     def run(self):
         """either starts a daemon or starts the server in the current window"""
@@ -126,10 +126,10 @@ class Server:
         daemon = self._srv_daemon(srv_daemon_pid_path, self)
        
         if self.args.which == "run":
-            self._start()
+            self.start()
         elif self.args.which == "daemon":
             print "RatingSync will now be run in background."
-            daemon._start()
+            daemon.start()
         elif self.args.which == "stop":
             print "If a daemon is running in background, it will now be stopped."
             daemon.stop()

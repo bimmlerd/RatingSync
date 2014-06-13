@@ -75,7 +75,7 @@ def parse_args():
     #arg_parser.add_argument("--create-playlists", help="automatically create or update playlists for every star rating")
     
     # run
-    run_parser = subparser.add_parser("run", help="_start syncing client")
+    run_parser = subparser.add_parser("run", help="Start syncing client")
     run_parser.set_defaults(which="run")
     
     # sync now
@@ -135,7 +135,7 @@ def init(args):
 # TODO running in background
 
 def start(args, config):
-    """_start syncing"""
+    """Start syncing"""
     # check path
     path = config.prefs["path"]
     if not os.path.exists(path):
@@ -205,7 +205,7 @@ def run():
         start(args, config)
     elif args.which == "daemon":
         print "RatingSync will now be run in background."
-        daemon._start()
+        daemon.start()
     elif args.which == "stop":
         print "If a daemon is running in background, it will now be stopped."
         daemon.stop()

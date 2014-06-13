@@ -82,4 +82,5 @@ class prefs:
         else:
             print "Invalid syncing interval: {0}".format(input_time)
             return False
-    
+# TODO
+# add message objects here!
