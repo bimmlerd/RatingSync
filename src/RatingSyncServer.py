@@ -70,22 +70,11 @@ class Server:
         # TODO introduce messages
         if request == "ping":
             if self.args.verbose: print "Client asks for server availability. answering yes."
-            connection.sendall("pong")
+            connection.sendall("pong" + package_end_marker)
         # maybe add elif data == "quit": shutdown server ?
         else:
-            if self.args.verbose: print "Client asks for something unrecognized. answering error."
-            connection.sendall("error")
-            
-    def _receive_data(self, connection):
-        """Receive data over the connection and assemble it"""
-        buffer = ""
-        while(True):
-            data = connection.recv(default_buffer_size)
-            buffer += data
-            if not data:
-                break
-            
-        return buffer
+            if self.args.verbose: print "Client asks for something unrecognized: {0}. answering error.".format(request)
+            connection.sendall("error" + package_end_marker)
     
     def start(self):
         """the actual implementation of the server. the process of syncing comes here"""
@@ -93,6 +82,7 @@ class Server:
         
         if self.args.verbose: print "Binding socket..."    
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         HOST = "" # Symbolic, meaning all available interfaces
         s.bind((HOST, default_tcp_port))
         s.listen(1)
@@ -104,7 +94,7 @@ class Server:
                 conn, addr = s.accept()
                 if self.args.verbose: print "Connected to {0}:{1}\nReceiving data...".format(*addr)
                 
-                data = self._receive_data(conn)
+                data = recvall(conn)
                 if self.args.verbose: print "No more data incoming, closing connection to {0}:{1}.".format(*addr)
                    
                 self._handle_request(conn, data)

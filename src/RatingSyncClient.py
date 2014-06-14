@@ -158,10 +158,10 @@ def start(args, config):
             s.connect((config.prefs["server"], default_tcp_port))
                 
             if args.verbose: print "Sending ping..."
-            s.sendall("ping")
+            s.sendall("ping" + package_end_marker)
         
             if args.verbose: print "Waiting for an answer..."
-            data = s.recv(default_buffer_size)
+            data = recvall(s)
         
             if data == "pong":
                 if args.verbose: print "Server available."

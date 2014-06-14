@@ -19,6 +19,7 @@ default_tcp_port = 7979 # TODO add settings in preferences
 
 # network stuff
 default_buffer_size = 1024 # TODO figure out an apropriate size
+package_end_marker = "\n" # Append this to packages send over the net so they can be assembled
 
 #preferences
 class prefs:
@@ -88,5 +89,20 @@ class prefs:
         else:
             print "Invalid syncing interval: {0}".format(input_time)
             return False
+        
+# Network stuff
+def recvall(connection):
+    """Receive data over multiple fractions. return the  assembled data"""
+    total_data = ""
+    while(True):
+        data = connection.recv(default_buffer_size)
+        if package_end_marker in data:
+            total_data += data[:-len(package_end_marker)] # cut out the end marker at the end of the string
+            break
+        else:
+            print "received", data
+            total_data += data
+    return total_data
+    
 # TODO
 # add message objects here!
