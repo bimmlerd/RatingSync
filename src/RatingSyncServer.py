@@ -76,6 +76,17 @@ class Server:
             if self.args.verbose: print "Client asks for something unrecognized. answering error."
             connection.sendall("error")
             
+    def _receive_data(self, connection):
+        """Receive data over the connection and assemble it"""
+        buffer = ""
+        while(True):
+            data = connection.recv(default_buffer_size)
+            buffer += data
+            if not data:
+                break
+            
+        return buffer
+    
     def start(self):
         """the actual implementation of the server. the process of syncing comes here"""
         print "Starting server..."
@@ -91,16 +102,12 @@ class Server:
             try:
                 conn = None
                 conn, addr = s.accept()
-                    
-                if self.args.verbose: print "Connected to {0}:{1}".format(*addr)
+                if self.args.verbose: print "Connected to {0}:{1}\nReceiving data...".format(*addr)
                 
-                while(True):
-                    data = conn.recv(default_buffer_size)
-                    if not data:
-                        if self.args.verbose: print "No more data incoming, closing connection to {0}:{1}.".format(*addr)
-                        break
-                    
-                    self._handle_request(conn, data)
+                data = self._receive_data(conn)
+                if self.args.verbose: print "No more data incoming, closing connection to {0}:{1}.".format(*addr)
+                   
+                self._handle_request(conn, data)
 
             except KeyboardInterrupt:
                 print "\b\bInterrupted by user. Exiting."
