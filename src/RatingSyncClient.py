@@ -158,16 +158,17 @@ def start(args, config):
             s.connect((config.prefs["server"], default_tcp_port))
                 
             if args.verbose: print "Sending ping..."
-            s.sendall("ping" + package_end_marker)
+            ping = Net_message(Net_message.MESSAGE_PING)
+            ping.send(s)
         
             if args.verbose: print "Waiting for an answer..."
-            data = recvall(s)
-        
-            if data == "pong":
+            pong = Net_message()
+            pong.receive(s)
+            
+            if pong.type == Net_message.MESSAGE_PONG:
                 if args.verbose: print "Server available."
             else:
-                print "Server not ready!"
-                raise Exception("server not ready!")
+                raise Exception("Server not ready!")
                 
             print "Scanning music library..."
             LocalDatabase.collect(config, args.verbose)
@@ -178,6 +179,7 @@ def start(args, config):
                 
             if args.verbose: print "Closing connection/socket..."
             s.close()
+            print "Syncronized."
         
         except:
             print "Server unavailable!"

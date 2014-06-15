@@ -5,6 +5,7 @@ Global constants and configuration shared across the program shall be added here
 import sys, os
 import json
 import re
+from argparse import ArgumentError
 
 # paths to config files
 client_config_path = "client.conf"
@@ -91,18 +92,91 @@ class prefs:
             return False
         
 # Network stuff
-def recvall(connection):
-    """Receive data over multiple fractions. return the  assembled data"""
-    total_data = ""
-    while(True):
-        data = connection.recv(default_buffer_size)
-        if package_end_marker in data:
-            total_data += data[:-len(package_end_marker)] # cut out the end marker at the end of the string
-            break
-        else:
-            print "received", data
-            total_data += data
-    return total_data
+class Net_message:
+    """
+    Messages to send or receive over TCP.
+    Make sure TYPE is a 6 characters long string. Preferably use the flags provided in this class.
+    Supports data of up to 99 999 999 bytes. (I could use hex numbers to keep the metadata size if that should not be enough)
+    """
     
-# TODO
-# add message objects here!
+    def __init__(self, type=None, data=None):
+        if type and len(type) != self.__meta_type_size:
+            raise Exception("Invalid message type")
+        self.type = type
+        self.data = data
+        self.metadata_size = len(self.__symbol_0 + self.__symbol_1) + self.__meta_len_size + self.__meta_type_size
+        # make sure the metadata size is a power of 2
+
+    __symbol_0 = "#" # symbol to mark beginning of the metadata and the message as a whole
+    __symbol_1 = "$" # symbol to mark ending of metadata and seperate it from the data
+    __meta_type_size = 6
+    __meta_len_size = 8
+    
+    def __to_string(self):
+        """Returns a string containing the data and information about its message type and length to it can be re-assembled."""
+        if self.data: data = json.encode(self.data) # encode data
+        else: data = ""
+        length = len(data) # size of the data
+        length = str(length)
+        length = "0" * (self.__meta_len_size - len(length)) + length # fill length metadata to size of 8
+        return self.__symbol_0 + self.type + length + self.__symbol_1
+        # Format: "#(6 byte: message type)(8 byte: message data size)$(message data)"
+    
+    def send(self, socket):
+        """Send this message from the specified socket."""
+        try:
+            socket.sendall(self.__to_string())
+        except:
+            print "Socket error!"
+            raise
+    
+    def receive(self, conn):
+        """Receive this message from specified connection or socket, and assembles it to class members type and data. This is Blocking."""
+        total_data = ""
+        total_data_size = None # how big is the message?
+        data_received = 0 # how much data has already been received?
+        while True:
+            # receive metadata
+            if total_data_size == None:
+                data = conn.recv(self.metadata_size)
+                # end message?
+                if not data:
+                    self.type = self.MESSAGE_END
+                    break
+                
+                # parse metadata
+                total_data_size = eval(data[7:15])
+                if len(data) != self.metadata_size or data[0] != self.__symbol_0 or data[15] != self.__symbol_1 or not isinstance(total_data_size, int):
+                    # check message format
+                    raise Exception("Unrecognized Message: {0}".format(data))
+                self.type = data[1:7]
+            
+            # receive Data
+            if total_data_size == data_received:
+                # if we are done, finish
+                break
+            elif total_data_size >= data_received + default_buffer_size:
+                # if there is more data left than the default buffer size, go with it
+                data = conn.recv(default_buffer_size)
+                total_data += data
+                data_received += len(data)    
+            else:
+                # get the last chunk of data without affecting the next package
+                data = conn.recv(total_data_size - data_received)
+                total_data += data
+                data_received += len(data)
+                # note that at this point we are not necessary finished - we might have received less data than proveded in the argument at recv().
+        
+        if total_data: # many messages dont actually carry data, they just symbolize something, like "ping" or so
+            self.data = json.decode(total_data)
+        
+    # Message type flags
+    # Dont change these!
+    MESSAGE_END = "closed" # connection closed
+    MESSAGE_PING = "ping__" # client asking server for availability
+    MESSAGE_PONG = "pong__" # server answering that he is available
+    MESSAGE_BUSY = "busy__" # server answering that he is busy
+    MESSAGE_DATABASE = "data__" # client sending local database to server for comparison
+    MESSAGE_LOCAL_CHANGES = "change" # server sending back changes to be made locally
+    MESSAGE_ERROR = "error_" # unrecognized request by server
+    #MESSAGE_QUIT = "00quit"

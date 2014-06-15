@@ -64,18 +64,20 @@ class Server:
         # parse args
         self.args = parser.parse_args()
     
-    def _handle_request(self, connection, request):
+    def _handle_request(self, connection, message):
         """This shall be called when data is received, it then handles the input"""
         # implementation
         # TODO introduce messages
-        if request == "ping":
+        if message.type == Net_message.MESSAGE_PING:
             if self.args.verbose: print "Client asks for server availability. answering yes."
-            connection.sendall("pong" + package_end_marker)
-        # maybe add elif data == "quit": shutdown server ?
+            pong = Net_message(type=Net_message.MESSAGE_PONG)
+            pong.send(connection)
+            
         else:
-            if self.args.verbose: print "Client asks for something unrecognized: {0}. answering error.".format(request)
-            connection.sendall("error" + package_end_marker)
-    
+            if self.args.verbose: print "Client asks for something unrecognized: {0}. answering error.".format(message.data)
+            error = Net_message(type=Net_message.MESSAGE_ERROR, data="Unrecognized request!")
+            error.send(connection)
+            
     def start(self):
         """the actual implementation of the server. the process of syncing comes here"""
         print "Starting server..."
@@ -87,17 +89,21 @@ class Server:
         s.bind((HOST, default_tcp_port))
         s.listen(1)
         
-        while(True): # keep running after connection is closed
+        while True: # keep running after connection is closed
             if self.args.verbose: print "Now listening..."
             try:
                 conn = None
                 conn, addr = s.accept()
                 if self.args.verbose: print "Connected to {0}:{1}\nReceiving data...".format(*addr)
                 
-                data = recvall(conn)
-                if self.args.verbose: print "No more data incoming, closing connection to {0}:{1}.".format(*addr)
-                   
-                self._handle_request(conn, data)
+                while True:
+                    request = Net_message()
+                    request.receive(conn)
+                    if request.type == Net_message.MESSAGE_END:
+                        break
+                    self._handle_request(conn, request)
+                    
+                if self.args.verbose: print "No more data incoming, closing connection to {0}:{1}.".format(*addr)                   
 
             except KeyboardInterrupt:
                 print "\b\bInterrupted by user. Exiting."
