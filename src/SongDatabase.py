@@ -5,9 +5,9 @@ import time
 
 class SongDatabase():
     '''
-    #was reinschreiben##
+    Music library database
     '''
-    __tree = None # globale variablen wuerde bedeuten dass du ausserhalb der klasse SongDatabase nach ihnen suchst. das ist nicht das was wir hier brauchen
+    __tree = None
     __created = None
     __finished = None
     
@@ -25,7 +25,7 @@ class SongDatabase():
     def insertSong(self, song):
         if self.__finished:
             raise Exception("already finished")
-        self.__tree.setdefault(song.LastChange, song)
+        self.__tree.setdefault(song.lastChanged, song)
        
        
     def serialize(self, path):

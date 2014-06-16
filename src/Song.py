@@ -17,17 +17,17 @@ class Song:
     def path(self):
         return self.__path
     
-    def GetRatings(self):
+    def getRatings(self):
         return self.__ratings
     
-    def SetRatings(self, ratings):
+    def setRatings(self, ratings):
         if not self.__ratings == ratings:
             self.__id3.setall('POPM', ratings)
             self.__id3.save(self.__path)
     
-    def LastChange(self):
+    def lastChanged(self):
         return self.__lastModified
     
-    def OpenAfterwards(self):
+    def openAfterwards(self):
         self.__id3 = ID3(self.__path)
         self.__ratings = self.__id3.getall('POPM')

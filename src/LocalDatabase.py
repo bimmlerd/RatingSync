@@ -28,15 +28,14 @@ def collect(config, verbose):
             if verbose:
                 print("adding dir to searching list: {}".format(item))
                 # push all child files to the stack
-            if not os.path.split(item)[1] == "#":
-                new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(item)]
-                dfs_stack.extend(new_dirs)
+            new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(item)]
+            dfs_stack.extend(new_dirs)
         elif os.path.isfile(item):
             if re.search(r".*\.mp3", item):
                 song = Song(item, False)
                 newLocalDatabase.insertSong(song)
                 if verbose:
-                    print("adding to music list ({}*): {}".format(song.LastChange(), song.path()))
+                    print("adding to music list ({}*): {}".format(song.lastChanged(), song.path()))
             elif verbose:
                 print("not an mp3 file: {}".format(item))
         else:
@@ -51,7 +50,7 @@ def collect(config, verbose):
         print "visited len", len(visited)
 
     newLocalDatabase.finish()
-    newLocalDatabase.serialize(os.curdir + os.path.sep + "MusicDatabase") # FIXME I dont see the file anywhere?
+    newLocalDatabase.serialize(os.curdir + os.path.sep + "MusicDatabase")
 
 def upload():
     #Uplaod the File "MusicDatabase"

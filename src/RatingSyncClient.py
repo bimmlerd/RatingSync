@@ -169,20 +169,23 @@ def start(args, config):
                 if args.verbose: print "Server available."
             else:
                 raise Exception("Server not ready!")
+        except:
+            print "Server unavailable!"
                 
-            print "Scanning music library..."
-            LocalDatabase.collect(config, args.verbose)
-            
+        print "Scanning music library..."
+        LocalDatabase.initialize(config, args.verbose)
+
+        try:            
             print "Syncing with server..."
             LocalDatabase.upload()
+            
             # TODO await response, commit changes
                 
             if args.verbose: print "Closing connection/socket..."
             s.close()
             print "Syncronized."
-        
         except:
-            print "Server unavailable!"
+            print "Server error!"
         
         finally:
             if args.which == "sync":
