@@ -76,3 +76,6 @@ docs/_build/
 # pydev configuration, and eclipse stuff
 .pydevproject
 .project
+
+# local music database
+MusicDatabase

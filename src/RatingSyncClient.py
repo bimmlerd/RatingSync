@@ -11,12 +11,12 @@ Author: posedge, phishdev, dbimmler, ...?
 """
 
 # imports n shit
-import argparse
-from shared import *
-import LocalDatabase
+import os, argparse
 import time as timemodule
-from daemon import Daemon
 import socket
+from shared import *
+from SongDatabase import *
+from daemon import Daemon
 
 """ # I dont see where we are using this in this file.
 # reading tags
@@ -142,12 +142,23 @@ def init(args):
 
 def start(args, config):
     """Start syncing"""
+    programpath = os.path.abspath(os.curdir)
+    databasepath = programpath + os.path.sep + "MusicDatabase"
     # check path
-    path = config.prefs["path"]
-    if not os.path.exists(path):
-        print "Invalid path: {0}".format(path)
+    musicpath = config.prefs["path"]
+    if not os.path.exists(musicpath):
+        print "Invalid path: {0}".format(musicpath)
         config.prefs["path"] = None
         config.setup()
+    
+    database = SongDatabase()
+    if not database.load(databasepath):
+        print "No local database found, creating new..."
+        database.build(musicpath, args.verbose)
+    else:
+        print "Updating database..."
+        database.update(musicpath, args.verbose)
+    database.save(databasepath)
     
     while True:
         print "Checking availabilty of {0}...".format(config.prefs["server"])
@@ -171,15 +182,13 @@ def start(args, config):
                 raise Exception("Server not ready!")
         except:
             print "Server unavailable!"
-                
-        print "Scanning music library..."
-        LocalDatabase.initialize(config, args.verbose)
 
         try:            
             print "Syncing with server..."
-            LocalDatabase.upload()
             
-            # TODO await response, commit changes
+            # TODO upload local database, let the server compare it
+            
+            # TODO await response, commit local changes
                 
             if args.verbose: print "Closing connection/socket..."
             s.close()
