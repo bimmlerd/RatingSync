@@ -101,6 +101,8 @@ def parse_args():
 def init(args):
     config = client_prefs()
     
+    static.verbose = args.verbose
+    
     if args.which == "config":
         if args.setup:
             config.clear() # if we are going to re-set everything, clear it first.
@@ -152,20 +154,26 @@ def start(args, config):
         config.setup()
     
     database = SongDatabase()
+    if args.verbose: print "Loading database..."
     if not database.load(databasepath):
-        print "No local database found, creating new..."
-        database.build(musicpath, args.verbose)
-    else:
-        print "Updating database..."
-        database.update(musicpath, args.verbose)
-    database.save(databasepath)
+        print "No local database found, creating new."
     
+    firstrun = True
     while True:
+        if not firstrun:
+            if args.which == "sync":
+                break
+        
+            if args.verbose:
+                print "Next synchronization in {0} minutes. Press ctrl+c to exit.".format(config.prefs["time"])
+            timemodule.sleep(config.prefs['time']*60)
+        firstrun = False
+        
         print "Checking availabilty of {0}...".format(config.prefs["server"])
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
-        if args.verbose: print "Connecting..."
         try:
+            if args.verbose: print "Connecting..."
             s.connect((config.prefs["server"], default_tcp_port))
                 
             if args.verbose: print "Sending ping..."
@@ -182,28 +190,23 @@ def start(args, config):
                 raise Exception("Server not ready!")
         except:
             print "Server unavailable!"
+            continue
 
         try:            
-            print "Syncing with server..."
-            
-            # TODO upload local database, let the server compare it
-            
-            # TODO await response, commit local changes
-                
-            if args.verbose: print "Closing connection/socket..."
-            s.close()
-            print "Syncronized."
+            print "Updating database..."
+            database.update(musicpath, args.verbose)
+            database.save(databasepath)
         except:
-            print "Server error!"
+            print "IO error!"
+            raise
+                
+        # TODO upload local database, let the server compare it
         
-        finally:
-            if args.which == "sync":
-                break
-        
-            if args.verbose:
-                print "Next synchronization in {0} minutes. Press ctrl+c to exit.".format(config.prefs["time"])
-        timemodule.sleep(config.prefs['time']*60)
-
+        # TODO await response, commit local changes
+                
+        if args.verbose: print "Closing connection/socket..."
+        s.close()
+        print "Syncronized."
 class rating_daemon(Daemon):
     def __init__(self, pidfile, args, config, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):   
         self.args, self.config = args, config

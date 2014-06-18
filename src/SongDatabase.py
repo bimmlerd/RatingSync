@@ -1,6 +1,10 @@
-import os, re, jsonpickle, time
+import os, re, time
+import cPickle
+import base64
+import json
 from bintrees import FastAVLTree
 from Song import Song
+from shared import static
 
 class SongDatabase():
     '''
@@ -9,6 +13,9 @@ class SongDatabase():
     __tree = None
     __created = None
     __finished = None
+    #__lastSynchronized = None
+    # Optimize the algorithm by only sending the songs changed since this time to the server
+    # (this needs to be implemented first obviously)
     
     def __init__(self):
         self.__tree = FastAVLTree()
@@ -19,19 +26,45 @@ class SongDatabase():
     
     def finish(self):
         self.__finished = True
-        self.__created = time.time 
+        self.__created = time.time
      
     def insertSong(self, song):
         if self.__finished:
             raise Exception("already finished")
-        self.__tree.setdefault(song.lastChanged, song)
+        if not self.__tree.get(song.key()):
+            self.__tree.setdefault(song.key(), song)
+        else: raise Exception("Tree already contains {}".format(song.key()))
        
-       
+    def removeSong(self, song):
+        self.__tree.remove(song.key())
+        
+    def updateSong(self, song):
+        """
+        Update song in the tree.
+        Return if it had to be changed.
+        """
+        tree_song = self.__tree.get(song.key())
+        if not tree_song:
+            print "Adding new to database: {}".format(song.filename())
+            self.insertSong(song)
+        else:
+            # song is the song provided
+            # tree_song is the song as it is saved in the database
+            # Synchronize these:
+            if song.lastChanged() > tree_song.lastChanged():
+                print "Updating modified song: {}".format(song.filename())
+                self.removeSong(tree_song) # note that it doesn't matter if we use song or tree_song here - the key is the same.
+                self.insertSong(song)
+                return True
+            return False
+                           
     def save(self, path):
+        if static.verbose: print "Saving database..."
         if not self.__finished:
             raise Exception("not yet finished")
         serializing_file = open(path, 'w')
-        json_obj = jsonpickle.encode(self.__tree)
+        #json_obj = jsonpickle.encode(self.__tree)
+        json_obj = json.dumps(base64.b64encode(cPickle.dumps(self.__tree)))
         serializing_file.write(json_obj)
         serializing_file.close()
         
@@ -39,9 +72,9 @@ class SongDatabase():
         """Try to load the database from a file. Return if it worked/if database is now initalized."""
         try:
             serializing_file = open(path, 'r')
-            tree = jsonpickle.decode(serializing_file.read())
+            #tree = jsonpickle.decode(serializing_file.read())
+            self.__tree = cPickle.loads(base64.b64decode(json.loads(serializing_file.read())))
             serializing_file.close()
-            self.__tree = tree
         except:
             return False
         return True
@@ -64,9 +97,9 @@ class SongDatabase():
             return self.__tree.pop_max()
             return None
     
-    def build(self, path, verbose):
+    def _for_each_mp3(self, path, verbose, song_action):
         """
-        Search music directory and add songs to the database
+        Search music directory and perform action on each song.
         """
         # implementation    
         starttime = time.time() # performance measuring
@@ -90,8 +123,7 @@ class SongDatabase():
             elif os.path.isfile(item):
                 if re.search(r".*\.mp3", item):
                     song = Song(item, False)
-                    if verbose: print("adding to music list ({}*): {}".format(song.lastChanged(), song.path()))
-                    self.insertSong(song)
+                    song_action(song)
                 elif verbose: print "not an mp3 file: {}".format(item)
             else:
                 print "error, {} is neither a file nor a directory. exiting.".format(item) 
@@ -108,6 +140,9 @@ class SongDatabase():
     
     def update(self, path, verbose):
         """
-        Search music directory and update database
+        Update music database.
         """
-        pass
+        def update_song(s):
+            self.updateSong(s)
+        self._for_each_mp3(path, verbose, update_song)
+                    

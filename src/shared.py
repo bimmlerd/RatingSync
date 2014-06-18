@@ -22,7 +22,11 @@ default_tcp_port = 7979 # TODO add settings in preferences
 default_buffer_size = 1024 # TODO figure out an apropriate size
 package_end_marker = "\n" # Append this to packages send over the net so they can be assembled
 
-#preferences
+# verbosity
+class static:
+    verbose = None # this is so to say a static variable        
+
+# preferences
 class prefs:
     """Preferences for the program. Will try to open the appropriate config file and load it on initialisation."""
     
