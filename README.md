@@ -23,6 +23,7 @@ This is my first python project so the code might be bad :)
 * fix connecting at random ports bug
 * write database code for server: comparing databases, committing changes
 * Add daemon/background process support for windows
+* Add a timeout to the socket?
 * (many little #TODO tasks in the code)
 
 ### Ideas for additional features
@@ -31,6 +32,8 @@ This is my first python project so the code might be bad :)
 * Add option to automatically generate/update playlists by rating and other attributes, according to user-defined rules. These should include ratings, genre, play count, folder, ...?
 * Add option to automatically delete one-star-rated files from your music libraries
 * Add messages and options to configure server remotely
+* Add possibility for a single server to manage multiple databases
+* Add option to instantly rate a song (everywhere) with a single command
 
 ### Changelog
 * [...]
