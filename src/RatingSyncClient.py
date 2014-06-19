@@ -199,8 +199,20 @@ def start(args, config):
         except:
             print "IO error!"
             raise
-                
-        # TODO upload local database, let the server compare it
+            continue
+            
+        # upload local database, let the server compare it
+        databasefile = open(databasepath)
+        try:
+            if static.verbose: print "Sending database to server..."
+            datamsg = Net_message(Net_message.MESSAGE_DATABASE, databasefile.read())
+            datamsg.send(s)
+        except:
+            print "Network error!"
+            raise
+            continue
+        finally:
+            databasefile.close()
         
         # TODO await response, commit local changes
                 

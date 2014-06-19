@@ -72,7 +72,11 @@ class Server:
             if self.args.verbose: print "Client asks for server availability. answering yes."
             pong = Net_message(type=Net_message.MESSAGE_PONG)
             pong.send(connection)
-            
+        elif message.type == Net_message.MESSAGE_DATABASE:
+            if self.args.verbose: print "Client sent database. Syncing with local database..."
+            # But for now and for testing purposes we shall only display the received object
+            client_data = message.data
+            pass
         else:
             if self.args.verbose: print "Client asks for something unrecognized: {0}. answering error.".format(message.data)
             error = Net_message(type=Net_message.MESSAGE_ERROR, data="Unrecognized request!")
