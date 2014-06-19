@@ -11,6 +11,8 @@ Otherwise, send back a list of changes to be made in the clients music library.
 
 import os, sys, argparse
 import socket
+import json
+import Ratings
 from shared import *
 from daemon import Daemon
 from SongDatabase import *
@@ -29,6 +31,7 @@ class Server:
     
     def __init__(self):
         self._parse_args()
+        static.verbose = self.args.verbose
     
     def _parse_args(self):
         """Parse arguments passed to the script."""
@@ -75,10 +78,56 @@ class Server:
             pong.send(connection)
         elif message.type == Net_message.MESSAGE_DATABASE:
             if self.args.verbose: print "Client sent database. Syncing with local database..."
-            # But for now and for testing purposes we shall only display the received object
             client_database = SongDatabase()
             client_database.loadFromString(message.data)
-            pass
+            client_changes = {}
+            
+            self.client_changes_count = 0
+            self.server_changes_count = 0
+            self.server_added_songs_count = 0
+            self.unchanged_count = 0
+            
+            # this will be called for each song in the client database, sorted by key (inorder).
+            def item_func(key, song):
+                # comparing implementation here
+                server_equivalent = self.srv_database.getSong(key, None)
+                if server_equivalent == None:
+                    print "Adding to server database: {}".format(song.key())
+                    self.srv_database.insertSong(song)
+                    self.server_added_songs_count += 1
+                else:
+                    client_rating = song.getRatingStars(Ratings.RatingProvider.WinAmp)
+                    server_rating = server_equivalent.getRatingStars(Ratings.RatingProvider.WinAmp)                    
+                    if client_rating == server_rating:
+                        if static.verbose: print "Same ratings for {}".format(key)
+                        self.unchanged_count += 1
+                    elif server_equivalent.lastChanged() > client_equivalent.lastChanged():
+                        # server file is up to date
+                        print "Will be updated in client database: {}".format(key)
+                        client_changes[key] = server_rating
+                        self.client_changes_count += 1
+                    else:
+                        # client file is up to date
+                        print "Updating in server database: {}".format(key)
+                        self.srv_database.removeSong(server_equivalent) # again, I might as well have used "song" since the key is the same.
+                        self.srv_database.insertSong(song)
+                        # I could have changed the ratings in the song only, but since I dont know if this is a copy of the song or a reference,
+                        # I will go ahead and replace it completely.
+                        self.server_changes_count += 1
+            
+            client_database.foreachInDatabase(item_func, 0)
+            
+            # save database
+            self.srv_database.finish()
+            self.srv_database.save(SRV_DATABASE_PATH)
+            
+            print "Server changed count: {0}\nClient will have to change count:{1}\n" \
+                "Newly added to server db: {2}\nRemain untouched: {3}".format(self.client_changes_count, \
+                self.server_changes_count, self.server_added_songs_count, self.unchanged_count)
+                
+            # reply
+            response = Net_message(Net_message.MESSAGE_LOCAL_CHANGES, json.dumps(client_changes))
+            response.send(connection)
         else:
             if self.args.verbose: print "Client asks for something unrecognized: {0}. answering error.".format(message.data)
             error = Net_message(type=Net_message.MESSAGE_ERROR, data="Unrecognized request!")
@@ -87,6 +136,11 @@ class Server:
     def start(self):
         """the actual implementation of the server. the process of syncing comes here"""
         print "Starting server..."
+        
+        self.srv_database = SongDatabase()
+        if static.verbose: print "Loading database..."
+        if not self.srv_database.load(SRV_DATABASE_PATH):
+            print "No local database found, creating new."
         
         if self.args.verbose: print "Binding socket..."    
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

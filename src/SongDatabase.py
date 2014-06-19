@@ -38,6 +38,9 @@ class SongDatabase():
     def removeSong(self, song):
         self.__tree.remove(song.key())
         
+    def getSong(self, key, default=None):
+        return self.__tree.get(key, default)
+        
     def updateSong(self, song):
         """
         Update song in the tree.
@@ -87,6 +90,10 @@ class SongDatabase():
             return False
         return True
     
+    def foreachInDatabase(self, func, order=0):
+        """For each item in the tree apply the function. Order: 0: Inorder, -1: Preorder, +1: Postorder."""
+        self.__tree.foreach(func, order)
+        
     '''
     def popAsNewDatabase(self, limit):
         if not __finished:

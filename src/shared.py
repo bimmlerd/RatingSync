@@ -16,13 +16,16 @@ srv_daemon_pid_path = "/tmp/ratingsync_server.pid"
 # default values
 default_time = 20
 default_server = "127.0.0.1"
-default_tcp_port = 7979 # TODO add settings in preferences
 
 # network stuff
 default_buffer_size = 1024 # TODO figure out an apropriate size
-package_end_marker = "\n" # Append this to packages send over the net so they can be assembled
+default_tcp_port = 7979 # TODO add settings in preferences
 
-# verbosity
+# paths to databases
+SRV_DATABASE_PATH = "ServerDatabase"
+CLIENT_DATABASE_PATH = "MusicDatabase"
+
+# verbosity and other shared variables
 class static:
     verbose = None # this is so to say a static variable        
 

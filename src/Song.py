@@ -1,5 +1,6 @@
 from mutagen.id3 import ID3
 import os
+import Ratings
 
 class Song:
     __id3 = None
@@ -23,6 +24,17 @@ class Song:
     
     def getRatings(self):
         return self.__ratings
+    
+    def getRatingStars(self, provider):
+        """Get song ratings in stars from 1-5. Provider is the rating provider, meaning which player has been used to rate the song."""
+        if not self.getRatings():
+            return 0 # means unrated
+        for rating in self.getRatings():
+            try:
+                return Ratings.starsFromByte(rating, Ratings.RatingProvider.WinAmp) # TODO support other ratings than those form winamp.
+            except:
+                pass
+        raise Exception("Getting ratings for song failed: {}".format(self.key()))
     
     def setRatings(self, ratings):
         if not self.__ratings == ratings:

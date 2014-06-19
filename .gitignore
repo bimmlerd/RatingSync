@@ -77,5 +77,6 @@ docs/_build/
 .pydevproject
 .project
 
-# local music database
+# music databases
 MusicDatabase
+ServerDatabase

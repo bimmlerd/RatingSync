@@ -18,19 +18,6 @@ from shared import *
 from SongDatabase import *
 from daemon import Daemon
 
-""" # I dont see where we are using this in this file.
-# reading tags
-def read_tag(item):
-    # maybe throw exeption if file is not an mp3 file?
-    try:
-        song = Song(item)
-        ratings = song.Ratings.getRatingsFromItem(item)
-        rating = ratings[0].rating
-        return Ratings.StarsFromByte(rating, Ratings.RatingProvider.WinAmp)
-    except:
-        return 0
-"""
-
 class client_prefs(prefs):
     def __init__(self):
         prefs.__init__(self, client_config_path)
@@ -145,7 +132,7 @@ def init(args):
 def start(args, config):
     """Start syncing"""
     programpath = os.path.abspath(os.curdir)
-    databasepath = programpath + os.path.sep + "MusicDatabase"
+    databasepath = programpath + os.path.sep + CLIENT_DATABASE_PATH
     # check path
     musicpath = config.prefs["path"]
     if not os.path.exists(musicpath):
@@ -214,7 +201,7 @@ def start(args, config):
         finally:
             databasefile.close()
         
-        # TODO await response, commit local changes
+        # await response
         try:
             if static.verbose: print "Waiting for an answer..."
             response = Net_message(Net_message.MESSAGE_LOCAL_CHANGES)
@@ -223,10 +210,15 @@ def start(args, config):
         except:
             print "Response error!"
             raise
-                
+        
         if args.verbose: print "Closing connection/socket..."
         s.close()
+
+        if static.verbose: print "Updating local files...(not yet implemented)"
+        # TODO commit local changes
+                
         print "Syncronized."
+        
 class rating_daemon(Daemon):
     def __init__(self, pidfile, args, config, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):   
         self.args, self.config = args, config
