@@ -202,9 +202,9 @@ def start(args, config):
             continue
             
         # upload local database, let the server compare it
+        print "Sending database to server..."
         databasefile = open(databasepath)
         try:
-            if static.verbose: print "Sending database to server..."
             datamsg = Net_message(Net_message.MESSAGE_DATABASE, databasefile.read())
             datamsg.send(s)
         except:
@@ -215,6 +215,14 @@ def start(args, config):
             databasefile.close()
         
         # TODO await response, commit local changes
+        try:
+            if static.verbose: print "Waiting for an answer..."
+            response = Net_message(Net_message.MESSAGE_LOCAL_CHANGES)
+            response.receive(s)
+            if static.verbose: print "Changes to be made locally: {}".format(response.data)
+        except:
+            print "Response error!"
+            raise
                 
         if args.verbose: print "Closing connection/socket..."
         s.close()

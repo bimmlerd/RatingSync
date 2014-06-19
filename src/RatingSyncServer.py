@@ -10,9 +10,10 @@ Otherwise, send back a list of changes to be made in the clients music library.
 """
 
 import os, sys, argparse
+import socket
 from shared import *
 from daemon import Daemon
-import socket
+from SongDatabase import *
 
 class srv_prefs:
     def __init__(self):
@@ -75,7 +76,8 @@ class Server:
         elif message.type == Net_message.MESSAGE_DATABASE:
             if self.args.verbose: print "Client sent database. Syncing with local database..."
             # But for now and for testing purposes we shall only display the received object
-            client_data = message.data
+            client_database = SongDatabase()
+            client_database.loadFromString(message.data)
             pass
         else:
             if self.args.verbose: print "Client asks for something unrecognized: {0}. answering error.".format(message.data)
@@ -102,7 +104,13 @@ class Server:
                 
                 while True:
                     request = Net_message()
-                    request.receive(conn)
+                    try:
+                        request.receive(conn)
+                    except Exception as e:
+                        if e.message == "Connection Lost.":
+                            print "Lost connection to {0}:{1}.".format(*addr)
+                        else: raise
+                        
                     if request.type == Net_message.MESSAGE_END:
                         break
                     self._handle_request(conn, request)

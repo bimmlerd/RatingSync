@@ -123,7 +123,7 @@ class Net_message:
         length = len(data) # size of the data
         length = str(length)
         length = "0" * (self.__meta_len_size - len(length)) + length # fill length metadata to size of 8
-        return self.__symbol_0 + self.type + length + self.__symbol_1
+        return self.__symbol_0 + self.type + length + self.__symbol_1 + data
         # Format: "#(6 byte: message type)(8 byte: message data size)$(message data)"
     
     def send(self, socket):
@@ -145,7 +145,7 @@ class Net_message:
         # end message?
         if not metadata:
             self.type = self.MESSAGE_END
-            break
+            return
         
         # parse metadata
         total_data_size = int(metadata[7:15])
@@ -154,29 +154,25 @@ class Net_message:
             or metadata[15] != self.__symbol_1 \
             or not isinstance(total_data_size, int):
             # check message format
-            raise Exception("Unrecognized Message: {0}".format(data))
-        self.type = data[1:7]
+            raise Exception("Unrecognized Message: {0}".format(metadata))
+        self.type = metadata[1:7]
 
         # receive Data
-        while True:
+        while self.type != self.MESSAGE_END:
             if total_data_size == data_received:
                 # if we are done, finish
                 break
             elif total_data_size >= data_received + default_buffer_size:
                 # if there is more data left than the default buffer size, go with it
                 data = conn.recv(default_buffer_size)
-                if not data:
-                    raise Exception("Connection lost.")
-                total_data += data
-                data_received += len(data)    
             else:
                 # get the last chunk of data without affecting the next package
-                data = conn.recv(total_data_size - data_received)
-                if not data:
-                    raise Exception("Connection lost.")
-                total_data += data
-                data_received += len(data)
                 # note that at this point we are not necessary finished - we might have received less data than proveded in the argument at recv().
+                data = conn.recv(total_data_size - data_received)
+            if not data:
+                raise Exception("Connection lost.")
+            total_data += data
+            data_received += len(data)
         
         if total_data: # many messages dont actually carry data, they just symbolize something, like "ping" or so
             self.data = total_data

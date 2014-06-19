@@ -69,12 +69,20 @@ class SongDatabase():
         serializing_file.close()
         
     def load(self, path):
-        """Try to load the database from a file. Return if it worked/if database is now initalized."""
+        """Try to load the database from a file. Return if it worked/if database is now initialized."""
         try:
             serializing_file = open(path, 'r')
             #tree = jsonpickle.decode(serializing_file.read())
             self.__tree = cPickle.loads(base64.b64decode(json.loads(serializing_file.read())))
             serializing_file.close()
+        except:
+            return False
+        return True
+    
+    def loadFromString(self, str):
+        """Try to load the database from a string. Return if it worked/if database is now initialized."""
+        try:
+            self.__tree = cPickle.loads(base64.b64decode(json.loads(str)))
         except:
             return False
         return True
