@@ -10,11 +10,10 @@ class Song:
     
     def __init__(self, path, openInstantly):
         self.__lastModified = os.path.getmtime(path)
-        self.__path = path # str to convert unicode.
-        # note that we lose many characters, so the __path will NOT return the acutal path!!! It will work great as a key though.
+        self.__path = path
         if openInstantly:
-            self.__id3 = ID3(path)
-            self.__ratings = self.__id3.getall('POPM')
+            #self.__id3 = ID3(path) # had to remove this, otherwise the pickled object for the database was like 1.8gb large...
+            self.__ratings = ID3(path).getall('POPM')
     
     def path(self):
         return self.__path
@@ -31,7 +30,7 @@ class Song:
             return 0 # means unrated
         for rating in self.getRatings():
             try:
-                return Ratings.starsFromByte(rating, Ratings.RatingProvider.WinAmp) # TODO support other ratings than those form winamp.
+                return Ratings.starsFromByte(rating, Ratings.RatingProvider.WinAmp) # TODO support other ratings than those from winamp.
             except:
                 pass
         raise Exception("Getting ratings for song failed: {}".format(self.key()))

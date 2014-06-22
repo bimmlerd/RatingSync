@@ -80,7 +80,7 @@ class Server:
             if self.args.verbose: print "Client sent database. Syncing with local database..."
             client_database = SongDatabase()
             client_database.loadFromString(message.data)
-            client_changes = {}
+            self.client_changes = {}
             
             self.client_changes_count = 0
             self.server_changes_count = 0
@@ -101,17 +101,17 @@ class Server:
                     if client_rating == server_rating:
                         if static.verbose: print "Same ratings for {}".format(key)
                         self.unchanged_count += 1
-                    elif server_equivalent.lastChanged() > client_equivalent.lastChanged():
+                    elif server_equivalent.lastChanged() > song.lastChanged():
                         # server file is up to date
                         print "Will be updated in client database: {}".format(key)
-                        client_changes[key] = server_rating
+                        self.client_changes[key] = server_rating
                         self.client_changes_count += 1
                     else:
                         # client file is up to date
                         print "Updating in server database: {}".format(key)
                         self.srv_database.removeSong(server_equivalent) # again, I might as well have used "song" since the key is the same.
                         self.srv_database.insertSong(song)
-                        # I could have changed the ratings in the song only, but since I dont know if this is a copy of the song or a reference,
+                        # I could have changed the ratings and last-change-date in the song only, but since I dont know if this is a copy of the song or a reference,
                         # I will go ahead and replace it completely.
                         self.server_changes_count += 1
             
@@ -121,13 +121,18 @@ class Server:
             self.srv_database.finish()
             self.srv_database.save(SRV_DATABASE_PATH)
             
-            print "Server changed count: {0}\nClient will have to change count:{1}\n" \
-                "Newly added to server db: {2}\nRemain untouched: {3}".format(self.client_changes_count, \
-                self.server_changes_count, self.server_added_songs_count, self.unchanged_count)
+            # summary
+            print "\nServer changed count: {}".format(self.server_changes_count)
+            print "Client will have to change count: {}".format(self.client_changes_count)
+            print "Newly added to server db: {}".format(self.server_added_songs_count)
+            print "Remain untouched: {}\n".format(self.unchanged_count)
                 
             # reply
-            response = Net_message(Net_message.MESSAGE_LOCAL_CHANGES, json.dumps(client_changes))
+            response = Net_message(Net_message.MESSAGE_LOCAL_CHANGES, json.dumps(self.client_changes))
             response.send(connection)
+            
+            # save database
+            self.srv_database.save(SRV_DATABASE_PATH)
         else:
             if self.args.verbose: print "Client asks for something unrecognized: {0}. answering error.".format(message.data)
             error = Net_message(type=Net_message.MESSAGE_ERROR, data="Unrecognized request!")

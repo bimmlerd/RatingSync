@@ -112,7 +112,7 @@ class SongDatabase():
             return self.__tree.pop_max()
             return None
     
-    def _for_each_mp3(self, path, verbose, song_action):
+    def _foreachOnDrive(self, path, verbose, song_action):
         """
         Search music directory and perform action on each song.
         """
@@ -137,7 +137,7 @@ class SongDatabase():
                 dfs_stack.extend(new_dirs)
             elif os.path.isfile(item):
                 if re.search(r".*\.mp3", item):
-                    song = Song(item, False)
+                    song = Song(item, True)
                     song_action(song)
                 elif verbose: print "not an mp3 file: {}".format(item)
             else:
@@ -157,7 +157,5 @@ class SongDatabase():
         """
         Update music database.
         """
-        def update_song(s):
-            self.updateSong(s)
-        self._for_each_mp3(path, verbose, update_song)
+        self._foreachOnDrive(path, verbose, self.updateSong)
                     

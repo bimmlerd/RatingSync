@@ -18,12 +18,14 @@ This is my first python project so the code might be bad :)
 * bintrees
 
 ### To Do list
+* fix connecting at random ports bug
+* Fix server "already finished updating db" error
+* Fix files contining ".mp3" instead of ending in ".mp3" matching the re bug
+* Add a timeout to the socket?
 * Figure out the best way for saving ratings in ID3 tags (the POPM frame is kinda complicated) - fake winamp/windows media player/Rhythmbox/...... ratings?
 * Add option to config for that
-* fix connecting at random ports bug
-* write database code for server: comparing databases, committing changes
+* implement client updating changes
 * Add daemon/background process support for windows
-* Add a timeout to the socket?
 * (many little #TODO tasks in the code)
 
 ### Ideas for additional features

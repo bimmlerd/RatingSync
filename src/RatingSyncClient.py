@@ -204,9 +204,11 @@ def start(args, config):
         # await response
         try:
             if static.verbose: print "Waiting for an answer..."
-            response = Net_message(Net_message.MESSAGE_LOCAL_CHANGES)
+            response = Net_message()
             response.receive(s)
-            if static.verbose: print "Changes to be made locally: {}".format(response.data)
+            if response.type != Net_message.MESSAGE_LOCAL_CHANGES:
+                raise Exception("Invalid response!")
+            if static.verbose: print "Changes to be made locally: {}".format(json.loads(response.data))
         except:
             print "Response error!"
             raise
