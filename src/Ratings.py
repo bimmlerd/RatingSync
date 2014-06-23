@@ -4,6 +4,7 @@ from mutagen.id3 import ID3
 def getRatingsFromItem(item):
     return ID3(item).getall('POPM')
 
+# FIXME
 def setRatingsForItem(ratings, item):
     ID3(item).setall('POPM', ratings)
     
@@ -23,7 +24,7 @@ def byteFromStars(stars, provider):
     if provider == RatingProvider.WinAmp or provider == RatingProvider.WindowsMediaPlayer9:
         if stars > 5 or stars < 1:
             raise Exception("Rating not between 0 and 5.")
-        return {0, 1, 64, 128, 196, 255}[stars]
+        return [0, 1, 64, 128, 196, 255][stars]
     else:
         raise Exception("Unknown RatingProvider.")
     

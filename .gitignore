@@ -80,3 +80,6 @@ docs/_build/
 # music databases
 MusicDatabase
 ServerDatabase
+
+# symlink to the program, to fake a second client
+another_client

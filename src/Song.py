@@ -40,6 +40,18 @@ class Song:
             self.__id3.setall('POPM', ratings)
             self.__id3.save(self.__path)
     
+    def setRatingStars(self, stars, provider):
+        """
+        Set song ratings in stars from 1-5. Provider is the rating provider (see getRatingStars).
+        NOTE: this will ERASE all current ratings! Meaning you cannot have different ratings from different providers at the same time (...yet)!
+        """
+        ratings = [Ratings.byteFromStars(stars, provider)]
+        if os.path.exists(self.path()):
+            Ratings.setRatingsForItem(ratings, self.path())
+        else:
+            # TODO
+            print "Song doesnt exist but is in db, maybe delete?: {}".format(self.key())
+        
     def lastChanged(self):
         return self.__lastModified
     

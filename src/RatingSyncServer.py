@@ -13,6 +13,8 @@ import os, sys, argparse
 import socket
 import json
 import Ratings
+import cPickle
+import base64
 from shared import *
 from daemon import Daemon
 from SongDatabase import *
@@ -127,7 +129,8 @@ class Server:
             print "Remain untouched: {}\n".format(self.unchanged_count)
                 
             # reply
-            response = Net_message(Net_message.MESSAGE_LOCAL_CHANGES, json.dumps(self.client_changes))
+            pickled_client_changes = json.dumps(base64.b64encode(cPickle.dumps(self.client_changes)))
+            response = Net_message(Net_message.MESSAGE_LOCAL_CHANGES, pickled_client_changes)
             response.send(connection)
             
             # save database

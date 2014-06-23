@@ -14,6 +14,9 @@ Author: posedge, phishdev, dbimmler, ...?
 import os, argparse
 import time as timemodule
 import socket
+import Ratings
+import cPickle
+import base64
 from shared import *
 from SongDatabase import *
 from daemon import Daemon
@@ -202,23 +205,31 @@ def start(args, config):
             databasefile.close()
         
         # await response
+        response = Net_message()
         try:
             if static.verbose: print "Waiting for an answer..."
-            response = Net_message()
             response.receive(s)
             if response.type != Net_message.MESSAGE_LOCAL_CHANGES:
                 raise Exception("Invalid response!")
-            if static.verbose: print "Changes to be made locally: {}".format(json.loads(response.data))
         except:
             print "Response error!"
-            raise
         
         if args.verbose: print "Closing connection/socket..."
         s.close()
-
-        if static.verbose: print "Updating local files...(not yet implemented)"
-        # TODO commit local changes
-                
+        
+        # commit local changes
+        if static.verbose: print "Updating local files..."
+        changes = cPickle.loads(base64.b64decode(json.loads(response.data)))
+        for key, rating in changes.iteritems():
+            print "key:", key
+            dbsong = database.getSong(key, None)
+            if dbsong:
+                print "Changing rating for: {}".format(key)
+                dbsong.setRatingStars(rating, Ratings.RatingProvider.WinAmp)
+            else:
+                if static.verbose: print "Song doesn't exist locally, ignoring change request: {}".format(key)
+        database.save(databasepath)
+        
         print "Syncronized."
         
 class rating_daemon(Daemon):
