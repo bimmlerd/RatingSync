@@ -118,7 +118,6 @@ class Server:
             client_database.foreachInDatabase(item_func, 0)
             
             # save database
-            self.srv_database.finish()
             self.srv_database.save(SRV_DATABASE_PATH)
             
             # summary

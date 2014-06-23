@@ -11,26 +11,14 @@ class SongDatabase():
     Music library database
     '''
     __tree = None
-    __created = None
-    __finished = None
     #__lastSynchronized = None
     # Optimize the algorithm by only sending the songs changed since this time to the server
     # (this needs to be implemented first obviously)
     
     def __init__(self):
         self.__tree = FastAVLTree()
-        self.__finished = False
-       
-    def created(self):
-        return self.__created
     
-    def finish(self):
-        self.__finished = True
-        self.__created = time.time
-     
     def insertSong(self, song):
-        if self.__finished:
-            raise Exception("already finished")
         if not self.__tree.get(song.key()):
             self.__tree.setdefault(song.key(), song)
         else: raise Exception("Tree already contains {}".format(song.key()))
@@ -63,8 +51,6 @@ class SongDatabase():
                            
     def save(self, path):
         if static.verbose: print "Saving database..."
-        if not self.__finished:
-            raise Exception("not yet finished")
         serializing_file = open(path, 'w')
         #json_obj = jsonpickle.encode(self.__tree)
         json_obj = json.dumps(base64.b64encode(cPickle.dumps(self.__tree)))
@@ -94,20 +80,7 @@ class SongDatabase():
         """For each item in the tree apply the function. Order: 0: Inorder, -1: Preorder, +1: Postorder."""
         self.__tree.foreach(func, order)
         
-    '''
-    def popAsNewDatabase(self, limit):
-        if not __finished:
-            raise Exception("not yet finished")
-        if not __tree.is_empty():
-            item = __tree.pop_max()
-            if item.LastModified >= limit: # oder nur > ?
-                return item
-        return None
-    '''
-        
     def pop(self):
-        if not self.__finished:
-            raise Exception("not yet finished")
         if not self.__tree.is_empty():
             return self.__tree.pop_max()
             return None
@@ -150,8 +123,6 @@ class SongDatabase():
             print "elapsed time: {:.5f}s".format(elapsed)
             print "music files len: ?"
             print "visited len", len(visited)
-    
-        self.finish()
     
     def update(self, path, verbose):
         """
