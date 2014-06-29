@@ -199,7 +199,6 @@ def start(args, config):
             datamsg.send(s)
         except:
             print "Network error!"
-            raise
             continue
         finally:
             databasefile.close()
@@ -210,9 +209,10 @@ def start(args, config):
             if static.verbose: print "Waiting for an answer..."
             response.receive(s)
             if response.type != Net_message.MESSAGE_LOCAL_CHANGES:
-                raise Exception("Invalid response!")
+                raise Exception()
         except:
             print "Response error!"
+            continue
         
         if args.verbose: print "Closing connection/socket..."
         s.close()

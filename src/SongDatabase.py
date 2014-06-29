@@ -52,7 +52,10 @@ class SongDatabase():
     def save(self, path):
         if static.verbose: print "Saving database..."
         serializing_file = open(path, 'w')
-        #json_obj = jsonpickle.encode(self.__tree)
+        if self.__tree._count == 0:
+            if static.verbose: print "Database is empty, therefore it will not be serialized."
+            serializing_file.close() # file is now empty
+            return
         json_obj = json.dumps(base64.b64encode(cPickle.dumps(self.__tree)))
         serializing_file.write(json_obj)
         serializing_file.close()
@@ -62,8 +65,12 @@ class SongDatabase():
         try:
             serializing_file = open(path, 'r')
             #tree = jsonpickle.decode(serializing_file.read())
-            self.__tree = cPickle.loads(base64.b64decode(json.loads(serializing_file.read())))
+            tree = cPickle.loads(base64.b64decode(json.loads(serializing_file.read())))
             serializing_file.close()
+            if tree == None: # Loaded database was empty
+                return False
+            else:
+                self.__tree = tree
         except:
             return False
         return True
@@ -71,13 +78,19 @@ class SongDatabase():
     def loadFromString(self, str):
         """Try to load the database from a string. Return if it worked/if database is now initialized."""
         try:
-            self.__tree = cPickle.loads(base64.b64decode(json.loads(str)))
+            tree = cPickle.loads(base64.b64decode(json.loads(str)))
+            if tree == None:
+                return False
+            else:
+                self.__tree = tree
         except:
             return False
         return True
     
     def foreachInDatabase(self, func, order=0):
         """For each item in the tree apply the function. Order: 0: Inorder, -1: Preorder, +1: Postorder."""
+        if self.__tree._count == 0: # for some reason the count() function doesnt work.
+            return
         self.__tree.foreach(func, order)
         
     def pop(self):
