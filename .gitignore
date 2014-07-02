@@ -81,5 +81,7 @@ docs/_build/
 MusicDatabase
 ServerDatabase
 
-# symlink to the program, to fake a second client
+# symlink to the program, to fake a second client and second music library
+# for testing purposes
 another_client
+another_musicdb
