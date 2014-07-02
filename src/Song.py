@@ -26,7 +26,7 @@ class Song:
         return self.__ratings
     
     def getRatingStars(self, provider):
-        """Get song ratings in stars from 1-5. Provider is the rating provider, meaning which player has been used to rate the song."""
+        """Get song ratings in stars from 1-5, or 0 if not rated. Provider is the rating provider, meaning which player has been used to rate the song."""
         if not self.getRatings():
             return 0 # means unrated
         for rating in self.getRatings():
@@ -46,12 +46,13 @@ class Song:
         Set song ratings in stars from 1-5. Provider is the rating provider (see getRatingStars).
         NOTE: this will ERASE all current ratings! Meaning you cannot have different ratings from different providers at the same time (...yet)!
         """
-        ratings = [Ratings.byteFromStars(stars, provider)]
+        self.__ratings = [Ratings.frameFromStars(stars, provider)]
         if os.path.exists(self.path()):
-            Ratings.setRatingsForItem(ratings, self.path())
+            Ratings.setRatingsForItem(self.__ratings, self.path())
         else:
             # TODO
-            print "Song doesnt exist but is in db, maybe delete?: {}".format(self.key())
+            raise Exception("Song doesnt exist but is in db?: {}".format(self.key()))
+        self.__lastModified = os.path.getmtime(self.path())
         
     def lastChanged(self):
         return self.__lastModified

@@ -1,12 +1,13 @@
 from enum import Enum
-from mutagen.id3 import ID3
+from mutagen.id3 import ID3, POPM
 
 def getRatingsFromItem(item):
     return ID3(item).getall('POPM')
 
-# FIXME
 def setRatingsForItem(ratings, item):
-    ID3(item).setall('POPM', ratings)
+    id3 = ID3(item)
+    id3.setall('POPM', ratings)
+    id3.save(item)
     
 def starsFromByte(rating, provider):
     if provider == RatingProvider.WinAmp or provider == RatingProvider.WindowsMediaPlayer9:
@@ -20,11 +21,12 @@ def starsFromByte(rating, provider):
     else:
         raise Exception("Unknown RatingProvider.")
 
-def byteFromStars(stars, provider):
+def frameFromStars(stars, provider):
     if provider == RatingProvider.WinAmp or provider == RatingProvider.WindowsMediaPlayer9:
         if stars > 5 or stars < 1:
             raise Exception("Rating not between 0 and 5.")
-        return [0, 1, 64, 128, 196, 255][stars]
+        byte = [0, 1, 64, 128, 196, 255][stars]
+        return POPM(email=provider.value, rating=byte)
     else:
         raise Exception("Unknown RatingProvider.")
     

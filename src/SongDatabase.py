@@ -102,7 +102,7 @@ class SongDatabase():
     
     def _foreachOnDrive(self, path, verbose, song_action):
         """
-        Search music directory and perform action on each song.
+        Search music directory and perform action on each song. Return update summary.
         """
         # for statistics
         searched_dir_count = 0
@@ -145,18 +145,18 @@ class SongDatabase():
         elapsed = time.time() - starttime
     
         # statistics
-        print "\nMp3 files added to database: {}".format(added_count)
-        print "Mp3 files updated in database: {}".format(updated_count)
-        print "Mp3 files unchanged in database: {}".format(unchanged_count)
+        summary = "Mp3 files added to database: {}".format(added_count) \
+        + "\nMp3 files updated in database: {}".format(updated_count) \
+        + "\nMp3 files unchanged in database: {}".format(unchanged_count)
         if verbose:
-            print "Searched directories: {}".format(searched_dir_count)
-            print "Non-mp3-files: {}".format(non_mp3_count)
-            print "Elapsed time: {:.5f} seconds".format(elapsed)
-        print ""
+            summary = summary + "\nSearched directories: {}".format(searched_dir_count) \
+            + "\nNon-mp3-files: {}".format(non_mp3_count) \
+            + "\nElapsed time: {:.5f} seconds".format(elapsed)
+        return summary
     
     def update(self, path, verbose):
         """
-        Update music database.
+        Update music database. Return update summary.
         """
-        self._foreachOnDrive(path, verbose, self.updateSong)
+        return self._foreachOnDrive(path, verbose, self.updateSong)
                     

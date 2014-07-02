@@ -184,7 +184,7 @@ def start(args, config):
 
         try:            
             print "Updating database..."
-            database.update(musicpath, args.verbose)
+            summary = database.update(musicpath, args.verbose)
             database.save(databasepath)
         except:
             print "IO error!"
@@ -219,18 +219,23 @@ def start(args, config):
         
         # commit local changes
         if static.verbose: print "Updating local files..."
+        local_changes_count = 0
         changes = cPickle.loads(base64.b64decode(json.loads(response.data)))
         for key, rating in changes.iteritems():
-            print "key:", key
             dbsong = database.getSong(key, None)
             if dbsong:
                 print "Changing rating for: {}".format(key)
                 dbsong.setRatingStars(rating, Ratings.RatingProvider.WinAmp)
+                local_changes_count += 1
             else:
                 if static.verbose: print "Song doesn't exist locally, ignoring change request: {}".format(key)
         database.save(databasepath)
         
-        print "Syncronized."
+        # summary
+        summary = summary + "\nRatings changed locally: {}".format(local_changes_count)
+        print "\n" + summary + "\n"
+        
+        print "Syncronized. You might have to update your winamp media library. Working on this..."
         
 class rating_daemon(Daemon):
     def __init__(self, pidfile, args, config, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):   

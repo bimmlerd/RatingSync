@@ -17,10 +17,9 @@ posedge, phishdev, dbimmler
 * bintrees
 
 ### To Do list
-* Fix setRatingsForItem bug
+* Add album name to key
 * Fix connecting at random ports bug
 * Fix files contining ".mp3" instead of ending in ".mp3" matching the RE bug
-* Change song key to artist - title instead of path
 * Add a timeout to the socket?
 * Figure out the best way for saving ratings in ID3 tags (the POPM frame is kinda complicated) - fake winamp/windows media player/Rhythmbox/...... ratings?
 * Add option to config for that
