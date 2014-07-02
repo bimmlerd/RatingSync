@@ -32,12 +32,13 @@ class SongDatabase():
     def updateSong(self, song):
         """
         Update song in the tree.
-        Return if it had to be changed.
+        Return what happened ("updated", "unchanged" or "added")
         """
         tree_song = self.__tree.get(song.key())
         if not tree_song:
             print "Adding new to database: {}".format(song.filename())
             self.insertSong(song)
+            return "added"
         else:
             # song is the song provided
             # tree_song is the song as it is saved in the database
@@ -46,8 +47,9 @@ class SongDatabase():
                 print "Updating modified song: {}".format(song.filename())
                 self.removeSong(tree_song) # note that it doesn't matter if we use song or tree_song here - the key is the same.
                 self.insertSong(song)
-                return True
-            return False
+                return "updated"
+            else:
+                return "unchanged"
                            
     def save(self, path):
         if static.verbose: print "Saving database..."
@@ -102,7 +104,13 @@ class SongDatabase():
         """
         Search music directory and perform action on each song.
         """
-        # implementation
+        # for statistics
+        searched_dir_count = 0
+        non_mp3_count = 0
+        added_count = 0
+        updated_count = 0
+        unchanged_count = 0
+        
         starttime = time.time() # performance measuring
     
         os.chdir(path)
@@ -112,30 +120,39 @@ class SongDatabase():
             item = dfs_stack.pop()
         
             if item in visited: # make sure there are no cycles
-                if verbose: print "searched file already: {}".format(item)
+                if verbose: print "Searched file already: {}".format(item)
                 continue
             
             visited.append(item)
             if os.path.isdir(item):
-                if verbose: print "adding dir to searching list: {}".format(item) 
-                    # push all child files to the stack
+                if verbose: print "Searching directory: {}".format(item) 
+                searched_dir_count += 1
+                # push all child files to the stack
                 new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(item)]
                 dfs_stack.extend(new_dirs)
             elif os.path.isfile(item):
                 if re.search(r".*\.mp3", item):
                     song = Song(item, True)
-                    song_action(song)
-                #elif verbose: print "not an mp3 file: {}".format(item) # this is annoying
+                    result = song_action(song)
+                    if result == "added": added_count += 1
+                    if result == "updated": updated_count += 1
+                    if result == "unchanged": unchanged_count += 1
+                else: non_mp3_count += 1
             else:
-                print "error, {} is neither a file nor a directory. exiting.".format(item) 
+                print "Error, {} is neither a file nor a directory. Exiting.".format(item) 
                 sys.exit(2)
     
         elapsed = time.time() - starttime
     
+        # statistics
+        print "\nMp3 files added to database: {}".format(added_count)
+        print "Mp3 files updated in database: {}".format(updated_count)
+        print "Mp3 files unchanged in database: {}".format(unchanged_count)
         if verbose:
-            print "elapsed time: {:.5f}s".format(elapsed)
-            print "music files len: ?"
-            print "visited len", len(visited)
+            print "Searched directories: {}".format(searched_dir_count)
+            print "Non-mp3-files: {}".format(non_mp3_count)
+            print "Elapsed time: {:.5f} seconds".format(elapsed)
+        print ""
     
     def update(self, path, verbose):
         """
