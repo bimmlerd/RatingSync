@@ -102,7 +102,7 @@ class SongDatabase():
         """
         Search music directory and perform action on each song.
         """
-        # implementation    
+        # implementation
         starttime = time.time() # performance measuring
     
         os.chdir(path)
@@ -125,7 +125,7 @@ class SongDatabase():
                 if re.search(r".*\.mp3", item):
                     song = Song(item, True)
                     song_action(song)
-                elif verbose: print "not an mp3 file: {}".format(item)
+                #elif verbose: print "not an mp3 file: {}".format(item) # this is annoying
             else:
                 print "error, {} is neither a file nor a directory. exiting.".format(item) 
                 sys.exit(2)

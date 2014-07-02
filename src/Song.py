@@ -3,17 +3,18 @@ import os
 import Ratings
 
 class Song:
-    __id3 = None
-    __ratings = None
-    __lastModified = None
-    __path = None
-    
     def __init__(self, path, openInstantly):
         self.__lastModified = os.path.getmtime(path)
         self.__path = path
         if openInstantly:
-            #self.__id3 = ID3(path) # had to remove this, otherwise the pickled object for the database was like 1.8gb large...
-            self.__ratings = ID3(path).getall('POPM')
+            id3 = ID3(path)
+            self.__ratings = id3.getall('POPM')
+            artist = id3.getall("TPE1")
+            title = id3.getall("TIT2")
+            if not artist or not title:
+                self.__key = self.__path
+            else:
+                self.__key = "{a} - {t}".format(a=artist[0], t=title[0]) # (distant) TODO: maybe consider the other entries in the artist/title tags aswell?
     
     def path(self):
         return self.__path
@@ -64,7 +65,7 @@ class Song:
         Determines what shall be used as a key.
         The last-changed date is a BAD idea since this has to be unique.
         """
-        return self.path() # I guess at some point I had to run into this problem...
+        return self.__key
         
     # TODO
     # def getArtist
