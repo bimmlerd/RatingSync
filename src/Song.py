@@ -11,11 +11,14 @@ class Song:
             self.__ratings = id3.getall('POPM')
             artist = id3.getall("TPE1")
             title = id3.getall("TIT2")
+            album = id3.getall("TALB")
             if not artist or not title:
                 self.__key = self.__path
-            else:
+            elif not album:
                 self.__key = "{a} - {t}".format(a=artist[0], t=title[0]) # (distant) TODO: maybe consider the other entries in the artist/title tags aswell?
-    
+            else:
+                self.__key = "{ar} - {al} - {t}".format(ar=artist[0], al=album[0], t=title[0])
+            
     def path(self):
         return self.__path
     

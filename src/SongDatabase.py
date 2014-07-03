@@ -36,7 +36,7 @@ class SongDatabase():
         """
         tree_song = self.__tree.get(song.key())
         if not tree_song:
-            print "Adding new to database: {}".format(song.filename())
+            print "Adding new to database: {}".format(song.key())
             self.insertSong(song)
             return "added"
         else:
@@ -44,7 +44,7 @@ class SongDatabase():
             # tree_song is the song as it is saved in the database
             # Synchronize these:
             if song.lastChanged() > tree_song.lastChanged():
-                print "Updating modified song: {}".format(song.filename())
+                print "Updating modified song: {}".format(song.key())
                 self.removeSong(tree_song) # note that it doesn't matter if we use song or tree_song here - the key is the same.
                 self.insertSong(song)
                 return "updated"
