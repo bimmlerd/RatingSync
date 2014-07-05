@@ -131,7 +131,7 @@ class SongDatabase():
                 new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(item)]
                 dfs_stack.extend(new_dirs)
             elif os.path.isfile(item):
-                if re.search(r".*\.mp3", item):
+                if re.search(r"^.*\.mp3$s", item):
                     song = Song(item, True)
                     result = song_action(song)
                     if result == "added": added_count += 1
