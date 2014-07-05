@@ -81,11 +81,16 @@ class prefs:
         
     def check_server(self, input_srv):
         """checks if input is a valid server ip."""
-        if re.search(r"^([0-9]{1,3}\.){3}[0-9]{1,3}$", str(input_srv)): # regular expression for an ip address. TODO extend this for hostnames!
+        if re.search(r"^([0-9]{1,3}\.){3}[0-9]{1,3}$", str(input_srv)) \
+        or re.search(r"^[a-zA-Z-.]*\.[a-zA-Z]{2,}$", str(input_srv)) \
+        or input_srv == "localhost":
+        # regular expressions for ip addresses and hostnames
+        # TODO verify the hostnames part!
+        # TODO check if connoecting over tcp to a hostname works with a string like that!
             print "Set server to {0}.".format(input_srv)
             return True
         else:
-            print "Invalid server ip: {0}".format(input_srv)
+            print "Invalid server ip or hostname: {0}".format(input_srv)
             return False
     
     def check_time(self, input_time):

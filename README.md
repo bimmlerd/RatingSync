@@ -53,6 +53,7 @@ Run the following commands:
 #### (next release)
 
 * Fixed: Files containing ".mp3" instead of ending in ".mp3" bug
+* Added: Ability to connect to hostnames
 
 #### v0.1
 
