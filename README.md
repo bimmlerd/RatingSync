@@ -33,7 +33,6 @@ Run the following commands:
 
 ### TODO list
 * Fix connecting at random ports bug
-* Fix files contining ".mp3" instead of ending in ".mp3" matching the RE bug
 * Add a timeout to the socket?
 * Add support for differently saved Ratings, other than WinAmp ratings in files, as well as an option to the config
 * Add support for the Rhythmbox database
@@ -51,6 +50,10 @@ Run the following commands:
 * Add possibility for a single server to manage multiple databases
 
 ### Changelog
+#### (next release)
+
+* Fixed: Files containing ".mp3" instead of ending in ".mp3" bug
+
 #### v0.1
 
 * Initial Release
