@@ -81,12 +81,15 @@ class prefs:
         
     def check_server(self, input_srv):
         """checks if input is a valid server ip."""
-        if re.search(r"^([0-9]{1,3}\.){3}[0-9]{1,3}$", str(input_srv)): # regular expression for an ip address. TODO extend this for hostnames!
-            print "Set server to {0}.".format(input_srv)
+        parts = input_srv.split('.')
+        if len(parts) == 4 and all(part.isdigit() and 0 <= int(part) <= 255 for part in parts):
+            print "Set server to ip {0}.".format(input_srv)
             return True
-        else:
-            print "Invalid server ip: {0}".format(input_srv)
-            return False
+        if re.search("^([a-z0-9](?:[a-z0-9-]*[a-z0-9]))$", input_srv):
+            print "Set server to hostname {0}.".format(input_srv)
+            return True
+        print "Invalid server ip or hostname: {0}".format(input_srv)
+        return False
     
     def check_time(self, input_time):
         """checks if input is a valid syncing intervall time"""

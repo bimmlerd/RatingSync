@@ -52,6 +52,7 @@ Run the following commands:
 ### Changelog
 #### (next release)
 
+* Added: Ability to connect to a server by hostname
 * Fixed: Files containing ".mp3" instead of ending in ".mp3" bug
 
 #### v0.1

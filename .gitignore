@@ -85,3 +85,7 @@ ServerDatabase
 # for testing purposes
 another_client
 another_musicdb
+
+# config files
+client.conf
+server.conf
