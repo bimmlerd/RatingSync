@@ -66,23 +66,25 @@ def parse_args():
     #arg_parser.add_argument("--create-playlists", help="automatically create or update playlists for every star rating")
     
     # run
-    run_parser = subparser.add_parser("run", help="Start syncing client")
+    run_parser = subparser.add_parser("run", help="Start syncing client.")
     run_parser.set_defaults(which="run")
     
     # sync now
-    sync_parser = subparser.add_parser("sync", help="sync database now and exit")
+    sync_parser = subparser.add_parser("sync", help="Sync database now and exit.")
     sync_parser.set_defaults(which="sync")
+    sync_parser.add_argument("--override-srv", action="store_true", help="Override all server ratings with local ratings.")
+    sync_parser.add_argument("--override-local", action="store_true", help="Override all local ratings with server ratings.")
     
     # run in background
-    daemon_parser = subparser.add_parser("daemon", help="run in background")
+    daemon_parser = subparser.add_parser("daemon", help="Run in background.")
     daemon_parser.set_defaults(which="daemon")
    
     # stop the process in background
-    stop_parser = subparser.add_parser("stop", help="stop the process running in background")
+    stop_parser = subparser.add_parser("stop", help="Stop the process running in background.")
     stop_parser.set_defaults(which="stop")
     
     # restart the process in background
-    res_parser = subparser.add_parser("restart", help="restart the process running in background")
+    res_parser = subparser.add_parser("restart", help="Restart the process running in background.")
     res_parser.set_defaults(which="restart")
     
     # parse args
@@ -142,6 +144,10 @@ def start(args, config):
         print "Invalid path: {0}".format(musicpath)
         config.prefs["path"] = None
         config.setup()
+    if args.which == "sync":
+        if args.override_srv and args.override_local:
+            print "You cannot override both local and server ratings."
+            return
     
     database = SongDatabase()
     if args.verbose: print "Loading database..."
@@ -191,6 +197,22 @@ def start(args, config):
             raise
             continue
             
+        # set override type
+        if static.verbose: 
+            synctype = "equal"
+            if args.override_srv: synctype = "overriding server ratings"
+            if args.override_local: synctype = "overriding local ratings"
+            print "Setting sync type to {0}.".format(synctype)
+        synctype = "ovrequal"
+        if args.override_srv: synctype = "ovrsrv"
+        if args.override_local: synctype = "ovrlocal"
+        synctype = Net_message(Net_message.MESSAGE_SYNC_TYPE, synctype)
+        try:
+            synctype.send(s)
+        except:
+            print "Network error!"
+            continue
+        
         # upload local database, let the server compare it
         print "Sending database to server..."
         databasefile = open(databasepath)

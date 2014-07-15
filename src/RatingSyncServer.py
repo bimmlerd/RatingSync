@@ -73,11 +73,18 @@ class Server:
     def _handle_request(self, connection, message):
         """This shall be called when data is received, it then handles the input"""
         # implementation
-        # TODO introduce messages
         if message.type == Net_message.MESSAGE_PING:
             if self.args.verbose: print "Client asks for server availability. answering yes."
             pong = Net_message(type=Net_message.MESSAGE_PONG)
             pong.send(connection)
+            
+        elif message.type == Net_message.MESSAGE_SYNC_TYPE:
+            if message.data == "ovrsrv":
+                print "Server ratings will be overridden!"
+            elif message.data == "ovrlocal":
+                print "Client ratings will be overridden!"
+            self.synctype = message.data
+        
         elif message.type == Net_message.MESSAGE_DATABASE:
             if self.args.verbose: print "Client sent database. Syncing with local database..."
             client_database = SongDatabase()
@@ -103,7 +110,7 @@ class Server:
                     if client_rating == server_rating:
                         if static.verbose: print "Same ratings for {}".format(key)
                         self.unchanged_count += 1
-                    elif server_equivalent.lastChanged() > song.lastChanged():
+                    elif self.synctype != "ovrsrv" and (self.synctype == "ovrlocal" or server_equivalent.lastChanged() > song.lastChanged()):
                         # server file is up to date
                         print "Will be updated in client database: {}".format(key)
                         self.client_changes[key] = server_rating
@@ -126,7 +133,7 @@ class Server:
             print "\nServer changed count: {}".format(self.server_changes_count)
             print "Client will have to change count: {}".format(self.client_changes_count)
             print "Newly added to server db: {}".format(self.server_added_songs_count)
-            print "Remain untouched: {}\n".format(self.unchanged_count)
+            print "Remain untouched: {}".format(self.unchanged_count)
                 
             # reply
             pickled_client_changes = json.dumps(base64.b64encode(cPickle.dumps(self.client_changes)))
@@ -142,7 +149,7 @@ class Server:
             
     def start(self):
         """the actual implementation of the server. the process of syncing comes here"""
-        print "Starting server..."
+        print "Starting server...\n"
         
         self.srv_database = SongDatabase()
         if static.verbose: print "Loading database..."
@@ -157,11 +164,12 @@ class Server:
         s.listen(1)
         
         while True: # keep running after connection is closed
-            if self.args.verbose: print "Now listening..."
+            if self.args.verbose: print "Now listening...\n"
             try:
                 conn = None
                 conn, addr = s.accept()
-                if self.args.verbose: print "Connected to {0}:{1}\nReceiving data...".format(*addr)
+                print "Connected to {0}:{1}".format(*addr)
+                if self.args.verbose: print "Receiving data..."
                 
                 while True:
                     request = Net_message()
@@ -176,7 +184,7 @@ class Server:
                         break
                     self._handle_request(conn, request)
                     
-                if self.args.verbose: print "No more data incoming, closing connection to {0}:{1}.".format(*addr)                   
+                print "Closing connection to {0}:{1}.\n".format(*addr)                   
 
             except KeyboardInterrupt:
                 print "\b\bInterrupted by user. Exiting."

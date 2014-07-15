@@ -189,6 +189,7 @@ class Net_message:
     MESSAGE_PING = "ping__" # client asking server for availability
     MESSAGE_PONG = "pong__" # server answering that he is available
     MESSAGE_BUSY = "busy__" # server answering that he is busy
+    MESSAGE_SYNC_TYPE = "snctyp" # client sets syncing type to server, and if one of the databases shall be overridden
     MESSAGE_DATABASE = "data__" # client sending local database to server for comparison
     MESSAGE_LOCAL_CHANGES = "change" # server sending back changes to be made locally
     MESSAGE_ERROR = "error_" # unrecognized request by server
