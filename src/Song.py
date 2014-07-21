@@ -1,6 +1,7 @@
 from mutagen.id3 import ID3
 import os
 import Ratings
+import time
 
 class Song:
     def __init__(self, path, openInstantly):
@@ -59,6 +60,10 @@ class Song:
         
     def lastChanged(self):
         return self.__lastModified
+    
+    def touch(self):
+        """Set last modified time to now."""
+        self.__lastModified = time.time()
     
     def openAfterwards(self):
         self.__id3 = ID3(self.__path)

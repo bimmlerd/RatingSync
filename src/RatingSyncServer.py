@@ -119,6 +119,7 @@ class Server:
                         # client file is up to date
                         print "Updating in server database: {}".format(key)
                         self.srv_database.removeSong(server_equivalent) # again, I might as well have used "song" since the key is the same.
+                        song.touch() # since we override this song, we need to set this as the updated version
                         self.srv_database.insertSong(song)
                         # I could have changed the ratings and last-change-date in the song only, but since I dont know if this is a copy of the song or a reference,
                         # I will go ahead and replace it completely.
