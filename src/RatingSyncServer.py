@@ -105,8 +105,8 @@ class Server:
                     self.srv_database.insertSong(song)
                     self.server_added_songs_count += 1
                 else:
-                    client_rating = song.getRatingStars(Ratings.RatingProvider.WinAmp)
-                    server_rating = server_equivalent.getRatingStars(Ratings.RatingProvider.WinAmp)                    
+                    client_rating = song.rating()
+                    server_rating = server_equivalent.rating()                
                     if client_rating == server_rating:
                         if static.verbose: print "Same ratings for {}".format(key)
                         self.unchanged_count += 1
@@ -121,14 +121,9 @@ class Server:
                         self.srv_database.removeSong(server_equivalent) # again, I might as well have used "song" since the key is the same.
                         song.touch() # since we override this song, we need to set this as the updated version
                         self.srv_database.insertSong(song)
-                        # I could have changed the ratings and last-change-date in the song only, but since I dont know if this is a copy of the song or a reference,
-                        # I will go ahead and replace it completely.
                         self.server_changes_count += 1
             
             client_database.foreachInDatabase(item_func, 0)
-            
-            # save database
-            self.srv_database.save(SRV_DATABASE_PATH)
             
             # summary
             print "\nServer changed count: {}".format(self.server_changes_count)

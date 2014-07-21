@@ -17,6 +17,7 @@ import socket
 import Ratings
 import cPickle
 import base64
+import importlib
 from shared import *
 from SongDatabase import *
 from daemon import Daemon
@@ -25,7 +26,7 @@ class client_prefs(prefs):
     def __init__(self):
         prefs.__init__(self, client_config_path)
         if self.prefs == None:
-            self.prefs = {"server": None, "time": None, "path": None} # Default preferences
+            self.prefs = {"server": None, "time": None, "path": None, "ratingPlugin": "winAmp"} # Default preferences
     
     def setup(self):
         while not self.check_server(self.prefs["server"]):
@@ -94,6 +95,9 @@ def init(args):
     config = client_prefs()
     
     static.verbose = args.verbose
+    
+    # TODO add option to config for rating plugin
+    config.prefs["ratingPlugin"] = "winAmp"
     
     if args.which == "config":
         if args.setup:
@@ -168,6 +172,13 @@ def start(args, config):
         print "Checking availabilty of {0}...".format(config.prefs["server"])
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
+        # load rating plugin
+        try:
+            ratingPlugin = importlib.import_module("rating_plugins." + config.prefs["ratingPlugin"])
+        except:
+            print "Failed to load rating plugin '{}'! Exiting.".format(config.prefs["ratingPlugin"])
+        
+        # connect
         try:
             if args.verbose: print "Connecting..."
             s.connect((config.prefs["server"], default_tcp_port))
@@ -187,10 +198,11 @@ def start(args, config):
         except:
             print "Server unavailable!"
             continue
-
+        
+        # update db
         try:            
             print "Updating database..."
-            summary = database.update(musicpath, args.verbose)
+            summary = database.update(musicpath, ratingPlugin)
             database.save(databasepath)
         except:
             print "IO error!"
@@ -213,7 +225,7 @@ def start(args, config):
             print "Network error!"
             continue
         
-        # upload local database, let the server compare it
+        # upload local db and let the server compare it
         print "Sending database to server..."
         databasefile = open(databasepath)
         try:
@@ -247,7 +259,7 @@ def start(args, config):
             dbsong = database.getSong(key, None)
             if dbsong:
                 print "Changing rating for: {}".format(key)
-                dbsong.setRatingStars(rating, Ratings.RatingProvider.WinAmp)
+                dbsong.saveRating(ratingPlugin, rating)
                 local_changes_count += 1
             else:
                 if static.verbose: print "Song doesn't exist locally, ignoring change request: {}".format(key)

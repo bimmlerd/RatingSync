@@ -10,12 +10,13 @@ class SongDatabase():
     '''
     Music library database
     '''
-    __tree = None
-    #__lastSynchronized = None
     # Optimize the algorithm by only sending the songs changed since this time to the server
     # (this needs to be implemented first obviously)
     
     def __init__(self):
+        """
+        Make new music library database.
+        """
         self.__tree = FastAVLTree()
     
     def insertSong(self, song):
@@ -100,7 +101,7 @@ class SongDatabase():
             return self.__tree.pop_max()
             return None
     
-    def _foreachOnDrive(self, path, verbose, song_action):
+    def _foreachOnDrive(self, path, ratingPlugin, song_action):
         """
         Search music directory and perform action on each song. Return update summary.
         """
@@ -120,19 +121,19 @@ class SongDatabase():
             item = dfs_stack.pop()
         
             if item in visited: # make sure there are no cycles
-                if verbose: print "Searched file already: {}".format(item)
+                if static.verbose: print "Searched file already: {}".format(item)
                 continue
             
             visited.append(item)
             if os.path.isdir(item):
-                if verbose: print "Searching directory: {}".format(item) 
+                if static.verbose: print "Searching directory: {}".format(item) 
                 searched_dir_count += 1
                 # push all child files to the stack
                 new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(item)]
                 dfs_stack.extend(new_dirs)
             elif os.path.isfile(item):
                 if re.search(r"^.*\.mp3$", item):
-                    song = Song(item, True)
+                    song = Song(item, ratingPlugin)
                     result = song_action(song)
                     if result == "added": added_count += 1
                     if result == "updated": updated_count += 1
@@ -148,15 +149,15 @@ class SongDatabase():
         summary = "Mp3 files added to database: {}".format(added_count) \
         + "\nMp3 files updated in database: {}".format(updated_count) \
         + "\nMp3 files unchanged in database: {}".format(unchanged_count)
-        if verbose:
+        if static.verbose:
             summary = summary + "\nSearched directories: {}".format(searched_dir_count) \
             + "\nNon-mp3-files: {}".format(non_mp3_count) \
             + "\nElapsed time: {:.5f} seconds".format(elapsed)
         return summary
     
-    def update(self, path, verbose):
+    def update(self, path, ratingPlugin):
         """
         Update music database. Return update summary.
         """
-        return self._foreachOnDrive(path, verbose, self.updateSong)
+        return self._foreachOnDrive(path, ratingPlugin, self.updateSong)
                     
