@@ -25,11 +25,12 @@ return last modified (saved) time of the song
 setup():
 ask user for preferences and save them
 
-
+touch(time, **kwargs):
+set last changed time to 'time'.
 
 The kwargs will contain the file path, song key, and probably artist, title, ... (not sure yet) to find the file or the song in databases.
 
-Any other declarations should be private!
+All other declarations should be private!
 
 I will probably extend this soon..
 """

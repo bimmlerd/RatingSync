@@ -136,7 +136,9 @@ class SongDatabase():
                     song = Song(item, ratingPlugin)
                     result = song_action(song)
                     if result == "added": added_count += 1
-                    if result == "updated": updated_count += 1
+                    if result == "updated":
+                        updated_count += 1
+                        song.touch(ratingPlugin)
                     if result == "unchanged": unchanged_count += 1
                 else: non_mp3_count += 1
             else:

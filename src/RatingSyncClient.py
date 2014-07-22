@@ -135,19 +135,24 @@ def init(args):
         if args.setup:
             config.setup()
         
-        # rating plugin
-        try:
-            ratingPlugin = importlib.import_module("rating_plugins." + config.prefs["ratingPlugin"])
-        except:
-            print "Failed to load rating plugin '{}'! Exiting.".format(config.prefs["ratingPlugin"])
-        if args.setup_plugin:
-            ratingPlugin.setup()
         
         if args.list:
             for l in config.list(): print l
             
         config.save()
         sys.exit(0)
+        
+    # rating plugin
+    # initialize it after the prefs - might have been changed.
+    global ratingPlugin
+    try:
+        ratingPlugin = importlib.import_module("rating_plugins." + config.prefs["ratingPlugin"])
+    except:
+        print "Failed to load rating plugin '{}'! Exiting.".format(config.prefs["ratingPlugin"])
+        raise
+    if args.which == "config" and args.setup_plugin:
+        # FIXME
+        ratingPlugin.setup()
         
     elif args.which in ["run", "sync", "daemon"]:
         config.setup() # make sure everything is set
@@ -220,6 +225,7 @@ def start(args, config):
         # update db
         try:            
             print "Updating database..."
+            global ratingPlugin
             summary = database.update(musicpath, ratingPlugin)
             database.save(databasepath)
         except:

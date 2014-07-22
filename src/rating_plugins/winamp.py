@@ -26,6 +26,9 @@ def saveRating(rating, **kwargs):
 def getLastChanged(**kwargs):
     return os.path.getmtime(kwargs["path"])
 
+def touch(time, **kwargs):
+    pass
+
 def setup():
     print "No preferences for this plugin."
 

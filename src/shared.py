@@ -114,6 +114,13 @@ class prefs:
             print "Plugin not fount: {0}".format(input_p)
             return False
         
+    def check_file_exists(self, file):
+        """returns if a file exists"""
+        if os.path.exists(file):
+            return True
+        else:
+            return False
+        
 # Network stuff
 class Net_message:
     """

@@ -19,7 +19,8 @@ class Song:
         else:
             self.__key = "{ar} - {al} - {t}".format(ar=artist[0], al=album[0], t=title[0])
         self.loadRating(ratingPlugin)
-        self.__lastModified = ratingPlugin.getLastChanged(path=self.path(), key=self.key())
+        self.attrs = {"artist": artist, "title": title, "album": album}
+        self.__lastModified = ratingPlugin.getLastChanged(path=self.path(), key=self.key(), **self.attrs)
             
     def path(self):
         return self.__path
@@ -33,7 +34,7 @@ class Song:
     def saveRating(self, ratingPlugin, rating):
         """Save rating according to ratingPlugin either to file, or to some database or whatever. Then update last changed attribute."""
         self.__rating = rating
-        self.__lastModified = ratingPlugin.saveRating(rating, path=self.path(), key=self.key())
+        self.__lastModified = ratingPlugin.saveRating(rating, path=self.path(), key=self.key(), **attrs)
     
     def loadRating(self, ratingPlugin):
         """Load rating using ratingPlugin"""
@@ -42,9 +43,16 @@ class Song:
     def lastChanged(self):
         return self.__lastModified
     
-    def touch(self):
+    def touch(self, ratingPlugin=None):
         """Set last modified time of object to now. Doesn't change file!"""
-        self.__lastModified = time.time()
+        t = time.time()
+        self.__lastModified = t
+        if ratingPlugin:
+            ratingPlugin.touch(t, path=path(), key=key(), **attrs)
+            
+    def getAttributes(self):
+        """Return dict with name, artist, album of this song."""
+        return self.attrs
         
     def key(self):
         """
