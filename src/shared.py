@@ -16,6 +16,7 @@ srv_daemon_pid_path = "/tmp/ratingsync_server.pid"
 # default values
 default_time = 20
 default_server = "127.0.0.1"
+default_rating_plugin = "winamp"
 
 # network stuff
 default_buffer_size = 1024 # TODO figure out an apropriate size
@@ -81,6 +82,7 @@ class prefs:
         
     def check_server(self, input_srv):
         """checks if input is a valid server ip."""
+        if input_srv == None: return False
         parts = input_srv.split('.')
         if len(parts) == 4 and all(part.isdigit() and 0 <= int(part) <= 255 for part in parts):
             print "Set server to ip {0}.".format(input_srv)
@@ -93,12 +95,23 @@ class prefs:
     
     def check_time(self, input_time):
         """checks if input is a valid syncing intervall time"""
+        if input_time == None: return False
         evaluated = eval(str(input_time))
         if isinstance(evaluated, int) and evaluated >= 1: # TODO figure out a good default value
             print "Set syncing interval to {0}.".format(input_time)
             return True
         else:
             print "Invalid syncing interval: {0}".format(input_time)
+            return False
+    
+    def check_rating_plugin(self, input_p):
+        """check if input is a valid rating plugin."""
+        if input_p == None: return False
+        elif os.path.exists("rating_plugins" + os.path.sep + input_p + ".py"):
+            print "Set rating plugin to {0}".format(input_p)
+            return True
+        else:
+            print "Plugin not fount: {0}".format(input_p)
             return False
         
 # Network stuff

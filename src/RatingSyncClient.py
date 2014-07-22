@@ -26,11 +26,19 @@ class client_prefs(prefs):
     def __init__(self):
         prefs.__init__(self, client_config_path)
         if self.prefs == None:
-            self.prefs = {"server": None, "time": None, "path": None, "ratingPlugin": "winAmp"} # Default preferences
+            self.prefs = {"server": None, "time": None, "path": None, "ratingPlugin": None} # Default preferences
+        if not "server" in self.prefs:
+            self.prefs["server"] = None
+        if not "time" in self.prefs:
+            self.prefs["time"] = None
+        if not "path" in self.prefs:
+            self.prefs["path"] = None
+        if not "ratingPlugin" in self.prefs:
+            self.prefs["ratingPlugin"] = None
     
     def setup(self):
         while not self.check_server(self.prefs["server"]):
-            self.prefs["server"] = raw_input("Enter server ip [127.0.0.1]: ")
+            self.prefs["server"] = raw_input("Enter server ip [{}]: ".format(default_server))
             if self.prefs["server"] == "":
                 self.prefs["server"] = default_server
                 
@@ -40,11 +48,16 @@ class client_prefs(prefs):
                 self.prefs["path"] = os.path.realpath(os.curdir)
         
         while not self.check_time(self.prefs["time"]):
-            self.prefs["time"] = raw_input("Enter sync interval in minutes (min. 1)[20]: ")
+            self.prefs["time"] = raw_input("Enter sync interval in minutes (min. 1)[{}]: ".format(default_time))
             if self.prefs["time"] == "": # default value
                 self.prefs["time"] = default_time
             else:
                 self.prefs["time"] = eval(self.prefs["time"])
+                
+        while not self.check_rating_plugin(self.prefs["ratingPlugin"]):
+            self.prefs["ratingPlugin"] = raw_input("Enter rating plugin to be used [{}]: ".format(default_rating_plugin))
+            if self.prefs["ratingPlugin"] == "":
+                self.prefs["ratingPlugin"] = default_rating_plugin
 
 def parse_args():
     """Parse arguments passed to the script."""
@@ -62,6 +75,8 @@ def parse_args():
     conf_parser.add_argument("--path", help="The path to the directory of your music collection.", type=str)
     conf_parser.add_argument("--server", help="The server to connect to.")
     conf_parser.add_argument("--time", help="The time interval in seconds for syncing the database.", type=int)
+    conf_parser.add_argument("--plugin", help="The plugin for reading/saving ratings to use.", type=str)
+    conf_parser.add_argument("--setup-plugin", action="store_true", help="Get asked for and set parameters for the rating plugin used.")
     conf_parser.add_argument("--list", action="store_true", help="List the current configuration.")
     #arg_parser.add_argument("--ratings-format", help="the format for ratings to be saved in files.", type=str)
     #arg_parser.add_argument("--create-playlists", help="automatically create or update playlists for every star rating")
@@ -96,9 +111,6 @@ def init(args):
     
     static.verbose = args.verbose
     
-    # TODO add option to config for rating plugin
-    config.prefs["ratingPlugin"] = "winAmp"
-    
     if args.which == "config":
         if args.setup:
             config.clear() # if we are going to re-set everything, clear it first.
@@ -115,9 +127,21 @@ def init(args):
         if not args.time == None:
             if config.check_time(args.time):
                 config.prefs["time"] = args.time
+                
+        if not args.plugin == None:
+            if config.check_rating_plugin(args.plugin):
+                config.prefs["ratingPlugin"] = args.plugin
 
         if args.setup:
             config.setup()
+        
+        # rating plugin
+        try:
+            ratingPlugin = importlib.import_module("rating_plugins." + config.prefs["ratingPlugin"])
+        except:
+            print "Failed to load rating plugin '{}'! Exiting.".format(config.prefs["ratingPlugin"])
+        if args.setup_plugin:
+            ratingPlugin.setup()
         
         if args.list:
             for l in config.list(): print l
@@ -130,7 +154,7 @@ def init(args):
     
     elif args.which in ["stop", "restart"]:
         pass
-    
+       
     else:
         sys.exit(1)
     
@@ -171,12 +195,6 @@ def start(args, config):
         
         print "Checking availabilty of {0}...".format(config.prefs["server"])
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        # load rating plugin
-        try:
-            ratingPlugin = importlib.import_module("rating_plugins." + config.prefs["ratingPlugin"])
-        except:
-            print "Failed to load rating plugin '{}'! Exiting.".format(config.prefs["ratingPlugin"])
         
         # connect
         try:

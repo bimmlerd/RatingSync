@@ -19,7 +19,7 @@ class Song:
         else:
             self.__key = "{ar} - {al} - {t}".format(ar=artist[0], al=album[0], t=title[0])
         self.loadRating(ratingPlugin)
-        self.__lastModified = ratingPlugin.getLastChanged(self.path(), self.key())
+        self.__lastModified = ratingPlugin.getLastChanged(path=self.path(), key=self.key())
             
     def path(self):
         return self.__path
@@ -33,11 +33,11 @@ class Song:
     def saveRating(self, ratingPlugin, rating):
         """Save rating according to ratingPlugin either to file, or to some database or whatever. Then update last changed attribute."""
         self.__rating = rating
-        self.__lastModified = ratingPlugin.saveRating(self.path(), self.key(), rating)
+        self.__lastModified = ratingPlugin.saveRating(rating, path=self.path(), key=self.key())
     
     def loadRating(self, ratingPlugin):
         """Load rating using ratingPlugin"""
-        self.__rating = ratingPlugin.loadRating(self.path(), self.key())
+        self.__rating = ratingPlugin.loadRating(path=self.path(), key=self.key())
         
     def lastChanged(self):
         return self.__lastModified
