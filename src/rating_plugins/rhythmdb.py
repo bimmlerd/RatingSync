@@ -11,8 +11,10 @@ therefore every time we notice a change in the rating, we have to update it manu
 
 import os
 import xml.etree.ElementTree as ET
+from Song import Song
 from shared import *
 from bintrees import FastAVLTree
+from argparse import ArgumentError
 
 # constants
 RDB_CONFIG_PATH = "rating_plugins" + os.sep + "rhythmdb.conf"
@@ -31,27 +33,40 @@ def __init():
     rhythmdb = FastAVLTree()
     for song in songs:
         # insert all songs and their ratings in the tree
-        for a in song:
-            location, rating = None, None
-            if a.tag == "location":
-                location = a.text
-            elif a.tag == "rating":
-                rating = a.text    
-            if location and rating != None:
-                break
-        if rating == None: rating = 0
-        rhythmdb.insert(location, rating)
-        
+        artist, album, title = song.find("artist"), song.find("album"), song.find("title")
+        location, rating = song.find("location"), song.find("rating")
+        if artist != None:
+            artist = artist.text
+            if isinstance(artist, unicode): artist = artist.encode("utf8")
+        if album != None:
+            album = album.text
+            if isinstance(album, unicode): album = album.encode("utf8")
+        if title != None:
+            title = title.text
+            if isinstance(title, unicode): title = title.encode("utf8")
+        rating = 0 if rating == None else int(rating.text)
+        location = location.text.replace("%20", " ").replace("file://", "", 1)
+        key = Song.makeKey(artist=artist, title=title, album=album, path=location)
+        if static.verbose: print "Rhythmdb: adding {}".format(key)
+        rhythmdb.insert(key, rating)
+
 def loadRating(**kwargs):
-    # TODO optimize this!!! Use a tree or something
-    location = kwargs["path"].replace(" ", "%20")
     global rhythmdb
-    return rhythmdb.get(location)
-    # song is not in db..
+    return rhythmdb.get(kwargs["key"])
 
 def saveRating(rating, **kwargs):
-    path = kwargs["path"]
-    # TODO implement
+    if rating < 0 or rating > 5:
+        raise Exception("Invalid rating!")
+    # update in tree
+    location = kwargs["path"].replace(" ", "%20")
+    global rhythmdb
+    rhythmdb[location] = rating
+    # update in db
+    xmltree = ET.parse(config.prefs["rdbPath"])
+    xmlsong = xmltree.getroot().find("./entry[location='{}']".format(location))
+    xmlrating = xmlsong.find("rating")
+    xmlrating.text = str(rating)
+    xmltree.write(config.prefs["rdbPath"])
     # update last modified time
     touch(**kwargs)
 

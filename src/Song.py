@@ -7,20 +7,10 @@ class Song:
     def __init__(self, path, ratingPlugin):
         self.__path = path
         id3 = ID3(path)
-        artist = id3.getall("TPE1")
-        title = id3.getall("TIT2")
-        album = id3.getall("TALB")
-        if not artist or not title:
-            # TODO support id3v1 ?
-            # TODO if there is no data, pick relative path, to make sure the key stays the same on multiple libraries!
-            self.__key = self.__path
-        elif not album:
-            self.__key = "{a} - {t}".format(a=artist[0], t=title[0]) # (distant) TODO: maybe consider the other entries in the artist/title tags aswell?
-        else:
-            self.__key = "{ar} - {al} - {t}".format(ar=artist[0], al=album[0], t=title[0])
+        self.__attrs = {"artist": id3.get("TPE1"), "title": id3.get("TIT2"), "album": id3.get("TALB")}
+        self.__key = Song.makeKey(path=self.path(), **self.getAttributes())
         self.loadRating(ratingPlugin)
-        self.attrs = {"artist": artist, "title": title, "album": album}
-        self.__lastModified = ratingPlugin.getLastChanged(path=self.path(), key=self.key(), **self.attrs)
+        self.__lastModified = ratingPlugin.getLastChanged(path=self.path(), key=self.key(), **self.getAttributes())
             
     def path(self):
         return self.__path
@@ -48,18 +38,34 @@ class Song:
         t = time.time()
         self.__lastModified = t
         if ratingPlugin:
-            ratingPlugin.touch(t, path=self.path(), key=self.key(), **self.attrs)
+            ratingPlugin.touch(t, path=self.path(), key=self.key(), **self.getAttributes())
             
     def getAttributes(self):
         """Return dict with name, artist, album of this song."""
-        return self.attrs
+        return self.__attrs
         
     def key(self):
         """
         Return song key.
         """
         return self.__key
+    
+    @staticmethod
+    def makeKey(**attrs):
+        """
+        Make a song key using the attributes (title, artist, album).
+        If there is insufficent information, make it with the path in which the song is located.
+        This is non-preferrred because on different hard drives song might not be found.
+        """
+        artist = attrs["artist"]
+        album = attrs["album"]
+        title = attrs["title"]
+        if not attrs["artist"] or not attrs["title"]:
+            # TODO support id3v1 ?
+            # TODO if there is no data, pick relative path, to make sure the key stays the same on multiple libraries!
+            return attrs["path"]
+        elif not attrs["album"]:
+            return "{ar} - {t}".format(ar=attrs["artist"], t=attrs["title"]) # (distant) TODO: maybe consider the other entries in the artist/title tags aswell?
+        else:
+            return "{ar} - {al} - {t}".format(ar=artist, al=album, t=title)
         
-    # TODO
-    # def getArtist
-    # def getSongname
