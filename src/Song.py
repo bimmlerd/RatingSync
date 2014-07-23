@@ -48,7 +48,7 @@ class Song:
         t = time.time()
         self.__lastModified = t
         if ratingPlugin:
-            ratingPlugin.touch(t, path=path(), key=key(), **attrs)
+            ratingPlugin.touch(t, path=self.path(), key=self.key(), **self.attrs)
             
     def getAttributes(self):
         """Return dict with name, artist, album of this song."""

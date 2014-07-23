@@ -12,6 +12,7 @@ therefore every time we notice a change in the rating, we have to update it manu
 import os
 import xml.etree.ElementTree as ET
 from shared import *
+from bintrees import FastAVLTree
 
 # constants
 RDB_CONFIG_PATH = "rating_plugins" + os.sep + "rhythmdb.conf"
@@ -24,32 +25,28 @@ def __init():
     # make sure everything is set
     config.setup()
     if static.verbose: print "Rhythmdb: Loading rhythmdb file..."
-    db = ET.parse(config.prefs["rdbPath"])    
-    root = db.getroot()
-    global songs
-    songs = root.findall("./entry[@type='song']")
-
+    songs = ET.parse(config.prefs["rdbPath"]).getroot().findall("./entry[@type='song']")
+    if static.verbose: print "Rhythmdb: Building data structure..."
+    global rhythmdb
+    rhythmdb = FastAVLTree()
+    for song in songs:
+        # insert all songs and their ratings in the tree
+        for a in song:
+            location, rating = None, None
+            if a.tag == "location":
+                location = a.text
+            elif a.tag == "rating":
+                rating = a.text    
+            if location and rating != None:
+                break
+        if rating == None: rating = 0
+        rhythmdb.insert(location, rating)
+        
 def loadRating(**kwargs):
     # TODO optimize this!!! Use a tree or something
     location = kwargs["path"].replace(" ", "%20")
-    global songs
-    done = False
-    for song in songs:
-        cont = False
-        for a in song:
-            if a.tag == "location":
-                if a.text.endswith(location):
-                    done = True # done means something more like "found the song"
-                else:
-                    cont = True
-                break
-        if cont: continue
-        if done: # thats the song.
-            for a in song:
-                if a.tag == "rating":
-                    return int(a.text)
-            # song didnt have a rating.
-            return 0
+    global rhythmdb
+    return rhythmdb.get(location)
     # song is not in db..
 
 def saveRating(rating, **kwargs):
@@ -68,9 +65,10 @@ def setup():
 
 def touch(time=None, **kwargs):
     if not time:
-        os.utime(path, None)
+        os.utime(kwargs["path"], None)
     else:
-        os.utime(path, (time, time))
+        # FIXME
+        os.utime(kwargs["path"], None)
 
 class rhythm_prefs(prefs):
     def __init__(self):
