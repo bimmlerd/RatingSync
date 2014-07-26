@@ -116,10 +116,11 @@ class prefs:
         
     def check_file_exists(self, file):
         """returns if a file exists"""
+        if file == None:
+            return False
         if os.path.exists(file):
             return True
-        else:
-            return False
+        return False
         
 # Network stuff
 class Net_message:

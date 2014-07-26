@@ -140,7 +140,6 @@ def init(args):
             for l in config.list(): print l
             
         config.save()
-        sys.exit(0)
         
     # rating plugin
     # initialize it after the prefs - might have been changed.

@@ -74,9 +74,10 @@ def getLastChanged(**kwargs):
     return os.path.getmtime(kwargs["path"])
 
 def setup():
-    prefs.clear()
-    prefs.setup()
-    prefs.save()
+    config = rhythm_prefs()
+    config.clear()
+    config.setup()
+    config.save()
 
 def touch(time=None, **kwargs):
     if not time:
