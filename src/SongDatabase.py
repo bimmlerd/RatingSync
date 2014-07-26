@@ -1,4 +1,6 @@
-import os, re, time
+import os, sys
+import re
+import time
 import cPickle
 import base64
 import json
@@ -44,7 +46,9 @@ class SongDatabase():
             # song is the song provided
             # tree_song is the song as it is saved in the database
             # Synchronize these:
-            if song.lastChanged() > tree_song.lastChanged():
+            if song.rating() != tree_song.rating():
+                # The provided song must be newer than the tree song,
+                # since the tree song doesnt get updated without the song on the drive getting updated aswell.
                 print "Updating modified song: {}".format(song.key())
                 self.removeSong(tree_song) # note that it doesn't matter if we use song or tree_song here - the key is the same.
                 self.insertSong(song)
@@ -114,22 +118,23 @@ class SongDatabase():
         
         starttime = time.time() # performance measuring
     
-        os.chdir(path)
-        dfs_stack = [os.path.realpath(os.curdir)]
+        startpath = path
+        os.chdir(startpath) # Do I need this?
+        dfs_stack = [startpath]
         visited = []
         while dfs_stack: # while not empty
             item = dfs_stack.pop()
         
-            if item in visited: # make sure there are no cycles
-                if static.verbose: print "Searched file already: {}".format(item)
+            if os.path.realpath(item) in visited: # make sure there are no cycles
+                if static.verbose: print u"Searched file already: {}".format(item)
                 continue
+            visited.append(os.path.realpath(item))
             
-            visited.append(item)
             if os.path.isdir(item):
-                if static.verbose: print "Searching directory: {}".format(item) 
+                if static.verbose: print u"Searching directory: {}".format(item) 
                 searched_dir_count += 1
                 # push all child files to the stack
-                new_dirs = [os.path.realpath(item + os.sep + c) for c in os.listdir(item)]
+                new_dirs = [item + os.sep + c for c in os.listdir(item)]
                 dfs_stack.extend(new_dirs)
             elif os.path.isfile(item):
                 if re.search(r"^.*\.mp3$", item):
@@ -142,7 +147,7 @@ class SongDatabase():
                     if result == "unchanged": unchanged_count += 1
                 else: non_mp3_count += 1
             else:
-                print "Error, {} is neither a file nor a directory. Exiting.".format(item) 
+                print u"Error, {} is neither a file nor a directory. Exiting.".format(item) 
                 sys.exit(2)
     
         elapsed = time.time() - starttime

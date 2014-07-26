@@ -24,11 +24,12 @@ class Song:
     def saveRating(self, ratingPlugin, rating):
         """Save rating according to ratingPlugin either to file, or to some database or whatever. Then update last changed attribute."""
         self.__rating = rating
-        self.__lastModified = ratingPlugin.saveRating(rating, path=self.path(), key=self.key(), **attrs)
+        self.__lastModified = ratingPlugin.saveRating(rating, path=self.path(), key=self.key(), **self.getAttributes())
     
     def loadRating(self, ratingPlugin):
         """Load rating using ratingPlugin"""
         self.__rating = ratingPlugin.loadRating(path=self.path(), key=self.key())
+        assert self.rating() != None
         
     def lastChanged(self):
         return self.__lastModified
@@ -63,9 +64,11 @@ class Song:
         if not attrs["artist"] or not attrs["title"]:
             # TODO support id3v1 ?
             # TODO if there is no data, pick relative path, to make sure the key stays the same on multiple libraries!
-            return attrs["path"]
+            key = attrs["path"]
         elif not attrs["album"]:
-            return "{ar} - {t}".format(ar=attrs["artist"], t=attrs["title"]) # (distant) TODO: maybe consider the other entries in the artist/title tags aswell?
+            key = "{ar} - {t}".format(ar=attrs["artist"], t=attrs["title"]) # (distant) TODO: maybe consider the other entries in the artist/title tags aswell?
         else:
-            return "{ar} - {al} - {t}".format(ar=artist, al=album, t=title)
+            key = "{ar} - {al} - {t}".format(ar=artist, al=album, t=title)
+        if isinstance(key, unicode): key = key.encode("utf8")
+        return key
         

@@ -7,6 +7,10 @@ I will save the last modified time in the files. They get updated in the rhythmd
 For good synchronization results, we want the last modified time to be as close as possible to the time,
 when the rating has last been changed. This is not as easy since Rhythmbox doesn't save that anywhere -
 therefore every time we notice a change in the rating, we have to update it manually.
+
+Notes: Changes made in the rhythmdb during the runtime of ratingsync will be overridden. I will probably
+find a better solution for this soon.
+Also, there might be a risk or corrupting your rhythmdb.xml - I recommend creating a backup.
 """
 
 import os
@@ -23,11 +27,14 @@ DEFAULT_RDB_PATH = "~/.local/share/rhythmbox/rhythmdb.xml"
 def __init():
     print "Loading rhythmbox database plugin..."
     if static.verbose: print "Rhythmdb: Loading prefs file..."
+    global config
     config = rhythm_prefs()
     # make sure everything is set
     config.setup()
     if static.verbose: print "Rhythmdb: Loading rhythmdb file..."
-    songs = ET.parse(config.prefs["rdbPath"]).getroot().findall("./entry[@type='song']")
+    global xmltree
+    xmltree = ET.parse(config.prefs["rdbPath"])
+    songs = xmltree.getroot().findall("./entry[@type='song']")
     if static.verbose: print "Rhythmdb: Building data structure..."
     global rhythmdb
     rhythmdb = FastAVLTree()
@@ -52,20 +59,32 @@ def __init():
 
 def loadRating(**kwargs):
     global rhythmdb
-    return rhythmdb.get(kwargs["key"])
+    key = kwargs["key"]
+    if isinstance(key, unicode): key = key.encode("utf8")
+    rating = rhythmdb.get(key) # FIXME
+    if rating == None:
+        rating = 0
+    return rating
 
 def saveRating(rating, **kwargs):
+    # TODO this is still very very slow - rewrite it!
     if rating < 0 or rating > 5:
         raise Exception("Invalid rating!")
+    # config
+    global config # not sure if that global thing is a good idea... maybe find another solution?
     # update in tree
-    location = kwargs["path"].replace(" ", "%20")
+    location = "file://" + kwargs["path"].replace(" ", "%20")
     global rhythmdb
-    rhythmdb[location] = rating
+    rhythmdb[kwargs["key"]] = rating
     # update in db
-    xmltree = ET.parse(config.prefs["rdbPath"])
-    xmlsong = xmltree.getroot().find("./entry[location='{}']".format(location))
+    global xmltree
+    xmlsong = xmltree.getroot().find("./entry[location=\"{}\"]".format(location))
     xmlrating = xmlsong.find("rating")
-    xmlrating.text = str(rating)
+    if xmlrating != None:
+        xmlrating.text = str(rating)
+    else:
+        xmlrating = ET.SubElement(xmlsong, "rating")
+        xmlrating.text = str(rating)
     xmltree.write(config.prefs["rdbPath"])
     # update last modified time
     touch(**kwargs)

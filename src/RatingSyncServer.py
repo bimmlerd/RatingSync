@@ -98,31 +98,56 @@ class Server:
             
             # this will be called for each song in the client database, sorted by key (inorder).
             def item_func(key, song):
+                client_rating = song.rating()
+                if client_rating == None:
+                    print "Corrupt rating for: {}".format(song.key())
+                    self.unchanged_count += 1
                 # comparing implementation here
                 server_equivalent = self.srv_database.getSong(key, None)
                 if server_equivalent == None:
-                    print "Adding to server database: {}".format(song.key())
+                    print "Adding to server database: {}, Rating: {}".format(song.key(), song.rating())
                     self.srv_database.insertSong(song)
                     self.server_added_songs_count += 1
                 else:
-                    client_rating = song.rating()
                     server_rating = server_equivalent.rating()                
                     if client_rating == server_rating:
-                        if static.verbose: print "Same ratings for {}".format(key)
+                        if static.verbose: print "Same ratings for {}, Rating: {}*".format(key, client_rating)
                         self.unchanged_count += 1
-                    elif self.synctype != "ovrsrv" and (self.synctype == "ovrlocal" or server_equivalent.lastChanged() > song.lastChanged()):
-                        # server file is up to date
-                        print "Will be updated in client database: {}".format(key)
+                        return
+                    
+                    # one could use a boolean equation but I find it way more readable like that:
+                    def pick_srv():
+                        # override client rating
+                        print "Will be updated in client database: {}, Rating: {}* -> {}*".format(key, client_rating, server_rating)
                         self.client_changes[key] = server_rating
                         self.client_changes_count += 1
-                    else:
-                        # client file is up to date
-                        print "Updating in server database: {}".format(key)
+
+                    def pick_client():
+                        # override server rating
+                        print "Updating in server database: {}, Rating: {}* -> {}*".format(key, server_rating, client_rating)
                         self.srv_database.removeSong(server_equivalent) # again, I might as well have used "song" since the key is the same.
                         song.touch() # since we override this song, we need to set this as the updated version
                         self.srv_database.insertSong(song)
                         self.server_changes_count += 1
-            
+
+                    # forced override by user
+                    if self.synctype == "ovrsrv":
+                        pick_client()
+                    elif self.synctype == "ovrlocal":
+                        pick_srv()
+                        
+                    # unrated files shall be overridden with the rating
+                    elif server_rating == 0:
+                        pick_client()
+                    elif client_rating == 0:
+                        pick_srv()
+                    
+                    # regular sync
+                    elif server_equivalent.lastChanged() > song.lastChanged():
+                        pick_srv() # server file is up to date
+                    else:
+                        pick_client() # client file is up to date
+                        
             client_database.foreachInDatabase(item_func, 0)
             
             # summary

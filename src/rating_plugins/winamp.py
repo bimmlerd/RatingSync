@@ -10,7 +10,9 @@ def loadRating(**kwargs):
     path = kwargs["path"]
     id3 = ID3(path)
     popmframes = id3.getall('POPM')
-    return __getRatingStars(popmframes)
+    rating = __getRatingStars(popmframes)
+    if rating == None: rating = 0
+    return rating
 
 def saveRating(rating, **kwargs):
     path = kwargs["path"]
